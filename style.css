@@ -1,0 +1,240 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-board {
+            width: 300px;
+            height: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #fff;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(20, 1fr);
+            width: 100%;
+            height: 100%;
+            gap: 1px;
+            background: #111;
+        }
+
+        .cell {
+            background: transparent;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.1s ease;
+        }
+
+        .cell.filled {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .cell.active {
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Tetris block colors */
+        .cell.I { background: linear-gradient(135deg, #00f5ff, #0099cc); }
+        .cell.O { background: linear-gradient(135deg, #ffff00, #cccc00); }
+        .cell.T { background: linear-gradient(135deg, #800080, #600060); }
+        .cell.S { background: linear-gradient(135deg, #00ff00, #00cc00); }
+        .cell.Z { background: linear-gradient(135deg, #ff0000, #cc0000); }
+        .cell.J { background: linear-gradient(135deg, #0000ff, #0000cc); }
+        .cell.L { background: linear-gradient(135deg, #ffa500, #cc8400); }
+
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 200px;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-panel h3 {
+            margin-bottom: 10px;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .level {
+            font-size: 20px;
+            color: #ff6b6b;
+        }
+
+        .next-cell.filled {
+    background: rgba(255, 255, 255, 0.7); /* fallback */
+    border-radius: 2px;
+
+        }
+        .next-cell.filled.I { background: linear-gradient(135deg, #00f5ff, #0099cc); }
+        .next-cell.filled.O { background: linear-gradient(135deg, #ffff00, #cccc00); }
+        .next-cell.filled.T { background: linear-gradient(135deg, #800080, #600060); }
+        .next-cell.filled.S { background: linear-gradient(135deg, #00ff00, #00cc00); }
+        .next-cell.filled.Z { background: linear-gradient(135deg, #ff0000, #cc0000); }
+        .next-cell.filled.J { background: linear-gradient(135deg, #0000ff, #0000cc); }
+        .next-cell.filled.L { background: linear-gradient(135deg, #ffa500, #cc8400); }
+
+        .lines {
+            font-size: 16px;
+            color: #4ecdc4;
+        }
+
+        .next-piece {
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            padding: 10px;
+        }
+
+        .next-cell {
+            background: transparent;
+            border-radius: 2px;
+        }
+
+        .controls {
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .controls h3 {
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+        }
+
+        .game-over h2 {
+            color: #ff4757;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        @keyframes lineComplete {
+            0% { 
+                background: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+                transform: scale(1.03);
+            }
+            50% { 
+                background: rgba(255, 215, 0, 0.9);
+                box-shadow: 0 0 20px rgba(255, 215, 0, 1);
+                transform: scale(1.05);
+            }
+            100% { 
+                background: transparent;
+                box-shadow: none;
+                transform: scale(1);
+            }
+        }
+
+        .line-complete {
+            animation: lineComplete 0.15s ease-out;
+            z-index: 10;
+            position: relative;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .score-flash {
+            animation: flash 0.2s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .game-board {
+                width: 250px;
+                height: 500px;
+            }
+            
+            .game-info {
+                min-width: 250px;
+            }
+        }
+    
