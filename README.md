@@ -45,15 +45,13 @@ Simply open `index.html` in any modern web browser - no installation required!
 ### Local Development
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/modern-tetris-game.git
+git clone https://github.com/FariNoveri/modern-tetris-game.git
 
 # Navigate to the project directory
 cd modern-tetris-game
 
 # Open in browser
 open index.html
-# or
-python -m http.server 8000  # For Python 3
 ```
 
 ## 🛠️ Technical Details
