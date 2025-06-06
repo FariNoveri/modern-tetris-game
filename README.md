@@ -31,8 +31,6 @@ A beautifully crafted web-based Tetris game with modern glassmorphism design and
 
 ### Scoring
 - **Line Clear** - Points based on lines cleared simultaneously
-- **Soft Drop** - +1 point per cell
-- **Hard Drop** - +2 points per cell
 - **Level Bonus** - All points multiplied by current level
 
 *"I'm getting better at this! Watch me clear four lines at once!"*
