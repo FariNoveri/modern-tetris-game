@@ -86,34 +86,72 @@ const ACTION_COOLDOWN = 120; // Cooldown untuk rotate dan hard drop
 
 // Leaderboard functions
 function saveLeaderboard(leaderboard) {
-    localStorage.setItem('tetris_leaderboard', JSON.stringify(leaderboard));
+    try {
+        localStorage.setItem('tetris_leaderboard', JSON.stringify(leaderboard));
+    } catch (error) {
+        console.error('Error saving to localStorage:', error);
+    }
 }
+
+let isInitialized = false;
+
+async function initializeGame() {
+    if (isInitialized) return; // Hindari duplikasi
+    
+    isInitialized = true;
+    initializeEventListeners();
+    init();
+    
+    // Load leaderboard dari server
+    try {
+        leaderboardData = await loadLeaderboardFromServer();
+        updateLeaderboardDisplay();
+    } catch (error) {
+        console.error('Error loading initial leaderboard:', error);
+        leaderboardData = [];
+    }
+}   
 
 async function loadLeaderboardFromServer() {
     try {
         const response = await fetch('http://localhost:3000/leaderboard');
         if (response.ok) {
-            return await response.json();
+            const serverData = await response.json();
+            return serverData || [];
         } else {
-            const backup = localStorage.getItem('tetris_leaderboard_backup');
+            // Fallback ke localStorage jika server tidak available
+            const backup = localStorage.getItem('tetris_leaderboard');
             return backup ? JSON.parse(backup) : [];
         }
-    } catch (e) {
-        const backup = localStorage.getItem('tetris_leaderboard_backup');
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        // Fallback ke localStorage
+        const backup = localStorage.getItem('tetris_leaderboard');
         return backup ? JSON.parse(backup) : [];
     }
 }
 
 function addToLeaderboard(name, score, lines, level) {
-    leaderboardData.push({
+    const newEntry = {
         name: name,
         score: score,
         lines: lines,
         level: level,
         date: new Date().toISOString()
-    });
-    leaderboardData.sort((a, b) => b.score - a.score);
-    updateLeaderboardDisplay();
+    };
+    
+    // PERBAIKAN: Cek duplikat berdasarkan name, score, dan waktu yang mirip
+    const isDuplicate = leaderboardData.some(entry => 
+        entry.name === newEntry.name && 
+        entry.score === newEntry.score &&
+        Math.abs(new Date(entry.date) - new Date(newEntry.date)) < 5000 // 5 detik tolerance
+    );
+    
+    if (!isDuplicate) {
+        leaderboardData.push(newEntry);
+        leaderboardData.sort((a, b) => b.score - a.score);
+        updateLeaderboardDisplay();
+    }
 }
 
 function updateLeaderboardDisplay() {
@@ -236,7 +274,6 @@ function executeAction(action) {
                 dropDistance++;
             }
             if (dropDistance > 0) {
-                score += dropDistance * 2; // Bonus untuk hard drop
                 updateDisplay();
             }
             drop();
@@ -639,6 +676,8 @@ function gameOver() {
     if (playerNameElement) playerNameElement.focus();
 }
 
+
+// PERBAIKAN 1: Fungsi submitScore() - Hindari duplikasi
 async function submitScore() {
     const nameInput = document.getElementById('playerName');
     if (!nameInput) return;
@@ -649,24 +688,37 @@ async function submitScore() {
         return;
     }
 
-    const response = await fetch('http://localhost:3000/submit-score', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            name,
-            score,
-            lines,
-            level
-        })
-    });
+    try {
+        const response = await fetch('http://localhost:3000/submit-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                score,
+                lines,
+                level
+            })
+        });
 
-    if (response.ok) {
+        if (response.ok) {
+            // PERBAIKAN: Reload data dari server instead of adding locally
+            leaderboardData = await loadLeaderboardFromServer();
+            updateLeaderboardDisplay();
+            
+            // Hide submit button setelah berhasil submit
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) submitBtn.style.display = 'none';
+        } else {
+            // Fallback: tambah ke local jika server gagal
+            addToLeaderboard(name, score, lines, level);
+        }
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        alert("Network error. Score saved locally.");
+        // Fallback: tambah ke local jika network error
         addToLeaderboard(name, score, lines, level);
-        updateLeaderboardDisplay();
-    } else {
-        alert("Failed to submit score.");
     }
 }
 
@@ -678,7 +730,10 @@ function restartGame() {
     const pauseOverlay = document.getElementById('pauseOverlay');
     
     if (gameOverElement) gameOverElement.style.display = 'none';
-    if (submitBtn) submitBtn.style.display = 'inline-block';
+    if (submitBtn) {
+        submitBtn.style.display = 'inline-block'; // PERBAIKAN: Tampilkan kembali submit button
+        submitBtn.disabled = false; // PERBAIKAN: Enable button
+    }
     if (playerNameElement) playerNameElement.value = '';
     if (pauseBtn) pauseBtn.textContent = 'Pause';
     if (pauseOverlay) pauseOverlay.style.display = 'none';
@@ -882,14 +937,3 @@ document.addEventListener('DOMContentLoaded',async() => {
     leaderboardData = await loadLeaderboardFromServer(); // ambil dari server
     updateLeaderboardDisplay(); // Memastikan leaderboard langsung muncul
 });
-
-// If DOM is already loaded, start immediately
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initializeEventListeners();
-        init();
-    });
-} else {
-    initializeEventListeners();
-    init();
-}
