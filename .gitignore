@@ -1,0 +1,11 @@
+.gitignore
+.env
+server_original.js
+encrypt-server.js
+reset_leaderboard.js
+reset-history.json
+leaderboard.json.enc
+leaderboard-backup.json.enc
+node_modules/
+package-lock.json
+npm-debug.log*

@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetris Game</title>
-    <!-- Load CSS -->
     <link rel="stylesheet" href="style.css">
+    <title>Enhanced Tetris Game</title>
 </head>
 <body>
     <div class="game-container">
         <div class="game-board">
             <div class="grid" id="grid"></div>
-            <div class="game-over" id="gameOver">
-                <h2>Game Over!</h2>
-                <p>Final Score: <span id="finalScore">0</span></p>
-                <button class="btn" onclick="restartGame()">Play Again</button>
+            <div class="pause-overlay" id="pauseOverlay">
+                <div class="pause-text">GAME PAUSED</div>
             </div>
+            <div class="combo-display" id="comboDisplay"></div>
         </div>
         
         <div class="game-info">
@@ -51,9 +49,35 @@
                 <p>Space Hard Drop</p>
             </div>
         </div>
+
+        <div class="right-panel">
+            <div class="info-panel">
+                <h3>Leaderboard</h3>
+                <div class="leaderboard">
+                    <ul class="leaderboard-list" id="leaderboardList">
+                        <!-- Leaderboard items will be populated here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Load JavaScript -->
     <script src="script.js"></script>
+
+    <!-- Game Over Modal -->
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Lines Cleared: <span id="finalLines">0</span></p>
+            <p>Level Reached: <span id="finalLevel">1</span></p>
+            <input type="text" class="name-input" id="playerName" placeholder="Enter your name" maxlength="15">
+            <div>
+                <button class="btn" onclick="submitScore()" id="submitBtn">Submit Score</button>
+                <button class="btn" onclick="restartGame()" style="margin-left: 10px;">Play Again</button>
+            </div>
+        </div>
+    </div>
 </body>
-</html>
+</html> 
