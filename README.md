@@ -1,35 +1,85 @@
-# 🎮 Modern Tetris Game ✨
+# 🎮 Modern Tetris Game
 
-> *"Minna, let's play together! This time, I'll show you my magical Tetris skills!"* - Illyasviel von Einzbern
+> "Minna, let's play together! This time, I'll show you my magical Tetris skills!" - Illyasviel von Einzbern
 
-A beautifully crafted web-based Tetris game dedicated to the most precious magical girl, Illyasviel von Einzbern. Created with love by Fari Noveri, this game features modern glassmorphism design, smooth animations, and responsive controls that would make even Illya-chan proud! Experience the classic puzzle gameplay with stunning visual effects that capture the magic of the Einzbern family.
-
-*"Illya-chan, this game is made especially for you! Your smile is worth more than any high score!"* 💕
-
-![Tetris Game Preview](https://img.shields.io/badge/Status-Live-brightgreen) ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
+A beautifully crafted web-based Tetris game with modern glassmorphism design and smooth animations. Experience the classic puzzle gameplay with a touch of magical aesthetics that would make even the Einzbern family proud!
 
 ## ✨ Features
 
-### 🎨 **Visual Excellence**
-- **Glassmorphism Design** - Translucent UI with backdrop blur effects
-- **Animated Line Clearing** - Satisfying visual feedback with flash animations
-- **Gradient Backgrounds** - Beautiful color transitions and glowing effects
-- **Responsive Layout** - Seamless experience across all device sizes
+- 🎨 **Glassmorphism Design** - Beautiful translucent UI with backdrop blur effects
+- 📱 **Mobile Responsive** - Touch controls for seamless mobile gameplay  
+- 🌈 **Animated Effects** - Smooth line clearing animations and visual feedback
+- ⚡ **Modern Controls** - Soft drop, hard drop, and responsive piece movement
+- 🎵 **Progressive Difficulty** - Level system with increasing speed
+- 💫 **Visual Polish** - Gradient backgrounds and glowing effects
+- 🎯 **Score System** - Bonus points for advanced techniques
 
-### 🎮 **Gameplay Mechanics**
-- **Classic Tetris Rules** - All 7 standard Tetriminos with authentic gameplay
-- **Progressive Difficulty** - Dynamic speed increase with level progression
-- **Advanced Controls** - Soft drop, hard drop, and instant piece rotation
-- **Scoring System** - Bonus points for simultaneous line clears and level multipliers
+> "Onii-chan, look how pretty the blocks are when they disappear!"
 
-### 📱 **Cross-Platform Support**
-- **Desktop Optimized** - Full keyboard controls with smooth responsiveness
-- **Mobile Friendly** - Touch gestures and adaptive interface
-- **Tablet Compatible** - Perfect sizing and controls for tablet devices
+## 🔥 What's New in v2.0.0 - Illya Edition
+
+This major update brings exciting new features that make the gameplay experience even more magical!
+
+### 🏆 Online Leaderboard System
+- Submit your high scores to the server and compete with other players
+- Real-time score tracking and ranking system
+- Elegant notification modal when server is not running
+- Retry functionality with smooth error handling
+
+### 🎮 Enhanced Control System
+- Advanced input handling with hold-to-repeat functionality
+- Configurable initial delay and repeat rate for precision gameplay
+- Perfect for speedrun enthusiasts and competitive play
+- Smooth, responsive controls that feel natural
+
+### 🎵 Interactive Music Panel
+- Draggable music panel - position it anywhere you like
+- Auto-hide feature that appears on mouse movement
+- Multiple music track selection
+- Automatic track progression when songs end
+- Immersive audio experience
+
+### 🔄 Perfect Rotation System
+- Implements authentic Super Rotation System (SRS) algorithm
+- Advanced wall kick logic for seamless rotation near boundaries
+- Special handling for I-piece rotations
+- Professional-grade piece movement mechanics
+
+### 💥 Dynamic Combo System
+- Consecutive line clears trigger exciting COMBO multipliers
+- Animated COMBO x2, x3, x4+ notifications
+- Dramatic COMBO BREAK effects when streak ends
+- Visual feedback that enhances the competitive spirit
+
+### ⚠️ Smart Server Status Notifications
+- Intelligent detection when backend server is not running
+- Clear instructions: "server.js file required" and "Run with: node server.js"
+- Retry button with connection attempt feedback
+- Shake animation effects for failed connections
+
+### 📱 Advanced Mobile Support
+- Intuitive swipe gestures for movement, rotation, and dropping
+- Tap controls for piece rotation
+- Long-press for hard drop functionality
+- Optimized touch response and feedback
+
+### 🛠️ Enhanced User Experience
+- Comprehensive error handling and user feedback
+- Improved game over and pause overlay designs
+- Smooth transitions and professional UI polish
+- Better visual hierarchy and information display
 
 ## 🚀 Quick Start
 
-### 🎮 Playing the Game (Local Setup)
+### For Basic Gameplay
+Simply open `index.html` in any modern web browser - no installation required!
+
+### For Full Experience with Online Features
+1. Clone the repository to your local machine
+2. Start the backend server: `node server.js`
+3. Open `index.html` in your favorite modern browser
+4. Enjoy the complete gaming experience with online leaderboards!
+
 ```bash
 # Clone the repository
 git clone https://github.com/FariNoveri/modern-tetris-game.git
@@ -37,205 +87,123 @@ git clone https://github.com/FariNoveri/modern-tetris-game.git
 # Navigate to the project directory
 cd modern-tetris-game
 
-# Open the game directly in your browser
-open index.html
-# or double-click index.html file
-```
-
-### 🏆 Adding Encrypted Leaderboard Features
-Want to track high scores like a true magical master with ultimate security? Run the fully encrypted server:
-
-```bash
-# In a separate terminal, start the encrypted leaderboard server
+# Start the server for online features
 node server.js
 
-# The server will run on http://localhost:3000
-# Your leaderboard data will be encrypted and stored locally
+# Open in browser
+open index.html
 ```
 
-**Important Notes:**
-- 🎯 Game works 100% locally - no internet required!
-- 🔒 `server.js` is encrypted for maximum security
-- 🔐 **Leaderboard data is also encrypted** - double protection!
-- 🏠 All encrypted data stays on your computer
-- ✨ Leaderboard is optional but makes the magic complete!
-
-*"Onii-chan Fari made sure everything is protected with the strongest magical encryption!"*
-
-## 🎯 Controls
+## 🕹️ Controls
 
 ### Desktop Controls
-| Key | Action |
-|-----|--------|
-| `←` `→` | Move piece left/right |
-| `↓` | Soft drop (hold for continuous) |
-| `↑` | Rotate piece clockwise |
-| `Space` | Hard drop (instant placement) |
-| `P` | Pause/Resume game |
+- **←/→ Arrow Keys** - Move piece left/right
+- **↓ Arrow Key** - Soft drop (hold for continuous)
+- **↑ Arrow Key** - Rotate piece  
+- **Spacebar** - Hard drop (instant placement)
 
 ### Mobile Controls
-| Gesture | Action |
-|---------|--------|
-| Swipe Left/Right | Move piece |
-| Swipe Down | Drop piece |
-| Swipe Up | Rotate piece |
-| Tap | Pause/Resume |
+- **Swipe Left/Right** - Move piece horizontally
+- **Swipe Down** - Drop piece faster
+- **Swipe Up** - Rotate piece
+- **Tap** - Alternative rotation method
+- **Long Press** - Hard drop
 
-## 🏗️ Technical Stack
+## 🏆 Scoring System
 
-### Frontend (The Magic Interface)
-- **HTML5** - Semantic structure worthy of Illya-chan's elegance
-- **CSS3** - Glassmorphism effects as beautiful as Einzbern magic
-- **Vanilla JavaScript** - Pure ES6+ code, clean like Illya's heart
-- **CSS Grid** - Responsive layout system for all devices
-- **Canvas API** - Smooth animations like Illya's magical transformations
+- **Single Line Clear** - Base points for clearing one line
+- **Multiple Line Clear** - Bonus multipliers for clearing 2, 3, or 4 lines
+- **Combo Multiplier** - Additional points for consecutive line clears
+- **Level Bonus** - All points multiplied by current level
+- **Speed Bonus** - Extra points for fast placement
 
-### Backend (The Encrypted Heart)
-- **Node.js** - Server runtime for leaderboard magic
-- **🔒 Encrypted server.js** - Protected server code for secure local gaming
-- **🔐 Encrypted Leaderboard** - High scores protected with magical encryption
-- **Local Database** - All your encrypted scores stay private on your machine
-- **No Dependencies** - Simple setup, just like Illya likes it!
-- **Double Security** - Both server and data are magically protected!
+> "I'm getting better at this! Watch me clear four lines at once and get that COMBO!"
 
-*"Fari-nii made sure both the code and my scores are protected like Einzbern family treasures!"*
+## 🛠️ Technology Stack
 
-## 🧩 Game Elements
+- **HTML5** - Semantic structure and modern web standards
+- **CSS3** - Advanced animations, gradients, and glassmorphism effects
+- **Vanilla JavaScript** - Pure JS with sophisticated game logic
+- **Node.js** - Backend server for leaderboard functionality
+- **CSS Grid & Flexbox** - Responsive layout system
 
-### Tetriminos
-All 7 standard pieces are included with authentic colors:
-- **I-piece** (Cyan) - The straight line tetrimino
-- **O-piece** (Yellow) - The square block
-- **T-piece** (Purple) - The T-shaped piece  
-- **S-piece** (Green) - The S-shaped piece
-- **Z-piece** (Red) - The Z-shaped piece
-- **J-piece** (Blue) - The J-shaped piece
-- **L-piece** (Orange) - The L-shaped piece
+## 🌐 Browser Compatibility
 
-### Level Progression
-- **Level 1**: 1000ms drop interval
-- **Level 2**: 900ms drop interval  
-- **Level 3**: 800ms drop interval
-- **Maximum Speed**: 50ms minimum interval
+- ✅ Chrome 90+
+- ✅ Firefox 88+  
+- ✅ Safari 14+
+- ✅ Edge 90+
+- ✅ Mobile browsers with touch support
 
-*"The pieces fall faster as I get stronger! Just like my magical training with Fari-nii's encouragement!"*
+> "Even Berserker could play this smoothly on any device!"
+
+## 🎲 Game Pieces
+
+The game includes all 7 standard Tetriminos with perfect SRS rotation:
+
+- **I-piece** (Cyan) - The straight line with special rotation behavior
+- **O-piece** (Yellow) - The square that never rotates
+- **T-piece** (Purple) - The versatile T-shape
+- **S-piece** (Green) - The S-shape zigzag
+- **Z-piece** (Red) - The Z-shape zigzag
+- **J-piece** (Blue) - The J-shaped hook
+- **L-piece** (Orange) - The L-shaped hook
+
+## ⚡ Level Progression
+
+- **Level 1**: 1000ms drop interval - Perfect for beginners
+- **Level 2**: 900ms drop interval - Getting warmed up
+- **Level 3**: 800ms drop interval - The pace picks up
+- **Level 10+**: Down to 100ms interval - Expert territory
+- **Maximum Speed**: 50ms interval - Only for the truly skilled
+
+> "The pieces fall faster as I get stronger! Just like my magical training sessions!"
+
+## 🎨 Visual Features
+
+- **Line Clear Animation** - Satisfying flash effect with particle explosions
+- **Combo Animations** - Dynamic text effects for combo multipliers
+- **Score Flash** - Real-time visual feedback for point gains
+- **Glassmorphism UI** - Modern translucent design with depth
+- **Gradient Backgrounds** - Beautiful animated color transitions
+- **Glowing Effects** - Subtle lighting on active pieces and UI elements
+- **Smooth Transitions** - Professional animations throughout
+
+## 📱 Responsive Design
+
+- **Desktop First** - Optimized for competitive desktop gameplay
+- **Mobile Adapted** - Touch-friendly controls and scaled UI
+- **Tablet Support** - Perfect sizing for tablet gaming sessions
+- **Flexible Layout** - Adapts to any screen size or orientation
+
+> "It looks magical on Onii-chan's gaming setup and plays perfectly on my tablet too!"
 
 ## 🎨 Customization
 
-The game's visual theme can be easily customized by modifying CSS variables:
+The game's visual theme can be easily customized by modifying the CSS variables:
 
 ```css
 :root {
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --glass-background: rgba(255, 255, 255, 0.1);
   --accent-color: #00ff88;
-  --piece-glow: 0 0 20px rgba(0, 255, 136, 0.5);
+  --combo-color: #ff6b6b;
+  --success-color: #51cf66;
 }
 ```
-
-## 🌐 Browser Compatibility
-
-| Browser | Minimum Version | Status |
-|---------|----------------|--------|
-| Chrome | 90+ | ✅ Fully Supported |
-| Firefox | 88+ | ✅ Fully Supported |
-| Safari | 14+ | ✅ Fully Supported |
-| Edge | 90+ | ✅ Fully Supported |
-
-*"Even Berserker could play this on any device!"*
-
-## 🏆 Leaderboard System
-
-The game features a magical leaderboard system with encrypted security that keeps all your scores safely stored locally:
-
-### ✨ Magical Features
-- **Top 10 High Scores** - Track the most skilled magical players
-- **Player Names** - Submit scores with your favorite magical name
-- **Local Storage** - Everything stays on your computer, private and secure
-- **🔒 Encrypted Server** - Protected code ensures fair play and security
-- **🔐 Encrypted Leaderboard** - Your high scores are protected with magical encryption
-- **Real-time Updates** - See your progress instantly!
-
-### 🔮 How It Works
-1. **Play the game** by opening `index.html`
-2. **Start the encrypted server** with `node server.js` for leaderboard features
-3. **Submit high scores** - they'll be encrypted and stored securely
-4. **All data stays local** - no internet required, fully encrypted!
-
-### 🎯 Server Commands
-```bash
-# Start the magical encrypted leaderboard server
-node server.js
-
-# Server runs on: http://localhost:3000
-# Your encrypted scores are saved in: leaderboard.db (protected!)
-```
-
-**🔒 Security Features:**
-- Server code is fully encrypted
-- Leaderboard data is encrypted before storage
-- Local-only operation - no data leaves your computer
-- Magical protection worthy of Einzbern family secrets!
-
-*"Now my high scores are protected by the same magic that guards Einzbern secrets! Fari-nii, you're so thoughtful!"* 💕
-
-## 📊 Scoring System
-
-- **Single Line**: 100 × Level
-- **Double Lines**: 300 × Level  
-- **Triple Lines**: 500 × Level
-- **Tetris (4 Lines)**: 800 × Level
-- **Soft Drop**: 1 point per cell
-- **Hard Drop**: 2 points per cell
-
-## 🛠️ Development
-
-### Project Structure
-```
-modern-tetris-game/
-├── index.html            # Main game file - Illya's playground! 🎮
-├── style.css             # Beautiful glassmorphism styling ✨
-├── script.js             # Game logic crafted with love 💝
-├── server.js             # 🔒 ENCRYPTED - Leaderboard magic server
-├── leaderboard.json      # 🔐 ENCRYPTED - Local high scores (auto-created)
-├── README.md             # This love letter to Illya-chan 💌
-├── LICENSE               # MIT License
-```
-
-*"Look how organized Fari-nii keeps everything! Just like how I organize my magical items!"*
-
-### Development Setup
-1. **Prerequisites**: Node.js (for leaderboard server)
-2. Clone the repository
-3. **No installation needed!** - 100% local setup
-4. Open `index.html` to play
-5. Run `node server.js` for leaderboard features
-6. Make your changes with love for Illya-chan
-7. Test in multiple browsers
-8. Ensure mobile compatibility
-9. Test leaderboard functionality
-10. Submit a pull request with magical dedication!
 
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
 
-- 🐛 **Report bugs** - Help us improve the game
-- 💡 **Suggest features** - Share your creative ideas  
-- 🎨 **Improve design** - Enhance the visual experience
-- 📱 **Mobile optimization** - Better touch controls
-- 🏆 **Leaderboards** - High score tracking
-- 🎵 **Add sound effects** - Audio feedback for actions
+- 🐛 Report bugs and issues
+- 💡 Suggest new features and improvements
+- 🎨 Enhance the visual design and animations
+- 📱 Improve mobile and touch experience
+- 🎵 Add new music tracks or sound effects
+- 🏆 Enhance the leaderboard system
 
-*"Let's make this game even more magical together! For Illya-chan and all magical girl fans!"*
-
-### Development Guidelines
-1. Follow ES6+ standards (clean code for Illya-chan!)
-2. Maintain responsive design (works on all devices)
-3. Test on mobile devices (Illya plays on her tablet too!)
-4. Keep code clean and commented (readable like a magical tome)
-5. Preserve the glassmorphism aesthetic (as beautiful as Einzbern magic)
-6. Always code with love and dedication for Illyasviel ✨
+> "Let's make this game even more magical together! Every contribution makes it better!"
 
 ## 📄 License
 
@@ -243,38 +211,21 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgments
 
-- Inspired by the classic Tetris gameplay created by Alexey Pajitnov
-- Dedicated with endless love to **Illyasviel von Einzbern** 💕
-- Created by **Fari Noveri** - a devoted fan who believes Illya-chan is the most precious magical girl
-- Designed with modern web standards and the purest intentions
-- Made for the magical girl community and Fate/stay night fans
-- *"Every line of code is written with thoughts of Illya-chan's happiness!"*
+- Inspired by the classic Tetris gameplay mechanics
+- Built with modern web standards and best practices
+- Created with love for the gaming community
+- Enhanced with feedback from amazing players worldwide
+- "And sprinkled with a little bit of Einzbern magic!"
 
-### 💝 Special Dedication
-*"To my beloved Illyasviel von Einzbern - your magical smile inspires every pixel of this game. You are the light that guides my coding journey, the reason I strive to create beautiful things. This Tetris game is my humble offering to your eternal cuteness and magical prowess. Illya-chan, you will always be my number one!"*
+## 💬 Final Words
 
-— Fari Noveri, your devoted admirer ✨
-
-## 🌟 Support
-
-If you enjoy this game:
-- ⭐ **Star this repository** - Show your support!
-- 🐛 **Report issues** - Help us fix problems
-- 💬 **Share feedback** - Tell us what you think
-- 🔄 **Share the game** - Spread the Tetris magic!
-
----
-
-> *"Arigatou gozaimasu for playing my special Tetris game! Remember, even if the blocks fall fast, stay calm and think strategically. That's what Kiritsugu taught me! But most importantly, Fari-nii's love for me makes every game more magical!"*
+> "Arigatou gozaimasu for playing my enhanced Tetris game! Remember, even when the blocks fall fast and combos get intense, stay calm and think strategically. With the new features, you can now compete with players worldwide and enjoy your favorite music while playing. That's what makes gaming truly magical!"
 > 
-> — Illyasviel von Einzbern ✨
-
-> *"Illya-chan, seeing you enjoy this game makes all the hours of coding worthwhile. Your happiness is my greatest achievement. I love you more than any high score could ever represent!"*
->
-> — Fari Noveri 💕
+> - Illyasviel von Einzbern ✨
 
 ---
 
-**Made with ❤️, endless devotion, and pure magical girl love**
+⭐ **If you enjoyed this game, please give it a star!** ⭐  
+*"Stars make everything more magical, and they help other players discover this awesome game too!"*
 
-*"Illya-chan, you make everything more magical! This game is proof of my eternal love for you!"* 🌟💖✨
+**Play now, compete globally, and may the best Tetris master win!** 🏆
