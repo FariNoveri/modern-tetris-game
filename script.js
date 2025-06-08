@@ -9,7 +9,54 @@ const TETROMINOS = {
     J: { shape: [[1,0,0],[1,1,1]], color: 'J' },
     L: { shape: [[0,0,1],[1,1,1]], color: 'L' }
 };
-const musicPanel = document.getElementById('musicInfo')
+
+const cheaterStyles = `
+<style>
+.cheater-detected {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border-left: 3px solid #dc3545 !important;
+    animation: cheater-pulse 2s infinite;
+}
+
+.cheater-name {
+    color: #dc3545 !important;
+    font-weight: bold !important;
+    text-shadow: 1px 1px 2px rgba(220, 53, 69, 0.3);
+}
+
+@keyframes cheater-pulse {
+    0%, 100% { 
+        background-color: rgba(220, 53, 69, 0.1); 
+    }
+    50% { 
+        background-color: rgba(220, 53, 69, 0.2); 
+    }
+}
+
+.btn-forgive {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-forgive:hover {
+    background-color: #218838 !important;
+    transform: translateY(-2px);
+}
+
+/* Tambahan styling untuk warning icon */
+.cheater-detected .leaderboard-name::after {
+    content: " 🚫";
+    font-size: 0.8em;
+}
+</style>
+`;
+
+let musicPanel = null;
+
 // Wall kick data untuk Super Rotation System (SRS)
 const WALL_KICKS = {
     // Normal pieces (T, S, Z, J, L)
@@ -61,8 +108,11 @@ let hasShownCustomError = false; // Untuk mencegah spam pesan
 // Store data in memory instead of localStorage
 let leaderboardData = [];
 let suppressDefaultErrors = true; // Untuk mengontrol apakah kita sembunyikan error browser
+let detectedCheaters = new Set(); // Menyimpan nama-nama cheater yang terdeteksi
+let currentPlayerIsCheater = false; // Status cheater untuk pemain saat ini
 let offsetX = 0;
 let offsetY = 0;
+
 // Input control variables - PERBAIKAN SISTEM HOLD
 let inputState = {
     left: false,
@@ -78,6 +128,7 @@ let inputIntervals = {
     down: null
 };
 
+
 let inputTimers = {
     left: null,
     right: null,
@@ -86,11 +137,40 @@ let inputTimers = {
     space: null
 };
 
+
+
 // Timing constants
 const INITIAL_DELAY = 170; // Delay sebelum repeat dimulai
 const REPEAT_RATE = 50; // Kecepatan repeat untuk left/right
 const SOFT_DROP_RATE = 30; // Kecepatan soft drop (down)
 const ACTION_COOLDOWN = 120; // Cooldown untuk rotate dan hard drop
+
+function markPlayerAsCheater(playerName, reason = "Cheat detected") {
+    if (!playerName) return;
+    
+    detectedCheaters.add(playerName);
+    
+    // Jika pemain saat ini yang cheating
+    if (playerName === currentPlayerName) {
+        currentPlayerIsCheater = true;
+    }
+    
+    // Update leaderboard display untuk menampilkan warna merah
+    updateLeaderboardDisplay();
+    
+    // Log untuk debugging
+    console.warn(`Player "${playerName}" marked as cheater: ${reason}`);
+}
+
+function clearCheaterStatus(playerName) {
+    if (playerName) {
+        detectedCheaters.delete(playerName);
+        if (playerName === currentPlayerName) {
+            currentPlayerIsCheater = false;
+        }
+        updateLeaderboardDisplay();
+    }
+}
 
 // Leaderboard functions
 function saveLeaderboard(leaderboard) {
@@ -134,14 +214,48 @@ async function initializeGame() {
         return;
     }
 
+// if (!(await checkFileIntegrity())) {
+//     showAntiCheatModal(["File integrity check failed"]);
+//     return;
+// }
+
     serverAvailable = true;
     isInitialized = true;
 
     initializeEventListeners();
-    setupMusicPanelDrag(); // TAMBAHKAN INI
+    setupMusicPanelDrag();
     init();
     leaderboardData = await loadLeaderboardFromServer();
     updateLeaderboardDisplay();
+}
+
+function cleanupGame() {
+    // Clear all intervals
+    clearInterval(dropInterval);
+    if (comboTimeout) {
+        clearTimeout(comboTimeout);
+        comboTimeout = null;
+    }
+
+    // Clear all input timers and intervals
+    Object.keys(inputTimers).forEach(action => {
+        if (inputTimers[action]) {
+            clearTimeout(inputTimers[action]);
+            inputTimers[action] = null;
+        }
+    });
+
+    Object.keys(inputIntervals).forEach(action => {
+        if (inputIntervals[action]) {
+            clearInterval(inputIntervals[action]);
+            inputIntervals[action] = null;
+        }
+    });
+
+    // Reset input states
+    Object.keys(inputState).forEach(action => {
+        inputState[action] = false;
+    });
 }
 
 async function loadLeaderboardFromServer() {
@@ -149,15 +263,23 @@ async function loadLeaderboardFromServer() {
         const response = await fetch('http://localhost:3000/leaderboard');
         if (response.ok) {
             const data = await response.json();
-            hideServerNotRunningModal(); // Sembunyikan popup jika berhasil
-            return data || [];
+            
+            // Proses data untuk mengidentifikasi cheater
+            data.forEach(entry => {
+                if (entry.isCheater) {
+                    detectedCheaters.add(entry.name);
+                }
+            });
+            
+            leaderboardData = data;
+            hideServerNotRunningModal();
+            return leaderboardData;
         } else {
             throw new Error("Server not available");
         }
     } catch (error) {
-        console.error('Error loading leaderboard:', error);
-        showServerNotRunningModal(); // Tampilkan popup error
-        return []; // Kembalikan array kosong sementara
+        console.warn("Server tidak tersedia, menggunakan data lokal sementara...");
+        return leaderboardData; // Tetap gunakan data lokal
     }
 }
 
@@ -187,14 +309,20 @@ async function retryLeaderboardLoad() {
     }
 }
 
-function addToLeaderboard(name, score, lines, level) {
+function addToLeaderboard(name, score, lines, level, isCheater = false) {
     const newEntry = {
         name: name,
         score: score,
         lines: lines,
         level: level,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        isCheater: isCheater // Tambah flag cheater
     };
+    
+    // Jika pemain adalah cheater, tandai
+    if (isCheater) {
+        markPlayerAsCheater(name, "Submitted with cheat detection");
+    }
     
     // PERBAIKAN: Cek duplikat berdasarkan name, score, dan waktu yang mirip
     const isDuplicate = leaderboardData.some(entry => 
@@ -226,9 +354,17 @@ function updateLeaderboardDisplay() {
         const li = document.createElement('li');
         li.className = 'leaderboard-item';
         
+        // Cek apakah pemain ini adalah cheater
+        const isCheater = detectedCheaters.has(entry.name);
+        
+        // Tambahkan class khusus untuk cheater
+        if (isCheater) {
+            li.classList.add('cheater-detected');
+        }
+        
         li.innerHTML = `
             <span class="leaderboard-rank">${index + 1}.</span>
-            <span class="leaderboard-name">${entry.name}</span>
+            <span class="leaderboard-name ${isCheater ? 'cheater-name' : ''}">${entry.name}${isCheater ? ' ⚠️' : ''}</span>
             <span class="leaderboard-score">${entry.score}</span>
         `;
         
@@ -244,15 +380,22 @@ function updateLeaderboardDisplay() {
         if (playerRank > 10) {
             const li = document.createElement('li');
             li.className = 'leaderboard-item current-player';
+            
+            // Cek apakah pemain saat ini adalah cheater
+            if (currentPlayerIsCheater) {
+                li.classList.add('cheater-detected');
+            }
+            
             li.innerHTML = `
                 <span class="leaderboard-rank">${playerRank}.</span>
-                <span class="leaderboard-name">${currentPlayerName}</span>
+                <span class="leaderboard-name ${currentPlayerIsCheater ? 'cheater-name' : ''}">${currentPlayerName}${currentPlayerIsCheater ? ' ⚠️' : ''}</span>
                 <span class="leaderboard-score">${score}</span>
             `;
             leaderboardList.appendChild(li);
         }
     }
 }
+
 // PERBAIKAN SISTEM INPUT - FUNGSI HOLD
 function startHoldAction(action) {
     if (inputTimers[action]) return; // Sudah aktif
@@ -782,51 +925,65 @@ function gameOver() {
     gameRunning = false;
     clearInterval(dropInterval);
 
-    // Hentikan musik latar
+    // Simpan final score dan lines
+    const finalScore = score;
+    const finalLines = lines;
+    const finalLevel = level;
+
+    // Sembunyikan musik
     if (bgMusic) {
         bgMusic.pause();
         bgMusic.currentTime = 0;
     }
 
-    // Mainkan efek suara game over
-    if (gameOverSound) {
-        gameOverSound.currentTime = 0;
-        gameOverSound.play().catch(e => console.log("Error playing sound:", e));
-    }
+    // Tampilkan final stats
+    document.getElementById('finalScore').textContent = finalScore;
+    document.getElementById('finalLines').textContent = finalLines;
+    document.getElementById('finalLevel').textContent = finalLevel;
 
-    // Sembunyikan UI musik
-    const musicInfo = document.getElementById('musicInfo');
-    if (musicPanel) musicPanel.style.display = 'none';
-
-    // Tampilkan modal game over
+    // Tampilkan modal
     const gameOverElement = document.getElementById('gameOver');
     if (gameOverElement) gameOverElement.style.display = 'flex';
+
+    // Reset state
+    isPaused = false;
+    currentPiece = null;
+    render();
 }
 
 // PERBAIKAN 1: Fungsi submitScore() - Hindari duplikasi
 async function submitScore() {
-    if (!serverAvailable) {
-        retryLeaderboardLoad(); // Getar modal
-        return;
-    }
-
+    // Ambil nama dari input
     const nameInput = document.getElementById('playerName');
     const name = nameInput.value.trim();
-
+    
     if (!name) {
         alert("Please enter your name.");
         nameInput.focus();
         return;
     }
 
+    // Set nama pemain saat ini
+    currentPlayerName = name;
+
+    // Submit score dengan informasi cheater
     try {
         const response = await fetch('http://localhost:3000/submit-score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, score, lines, level })
+            body: JSON.stringify({ 
+                name, 
+                score, 
+                lines, 
+                level,
+                isCheater: currentPlayerIsCheater // Kirim status cheater
+            })
         });
 
         if (response.ok) {
+            // Tambahkan ke leaderboard lokal dengan status cheater
+            addToLeaderboard(name, score, lines, level, currentPlayerIsCheater);
+            
             leaderboardData = await loadLeaderboardFromServer();
             updateLeaderboardDisplay();
             document.getElementById('submitBtn').style.display = 'none';
@@ -835,12 +992,13 @@ async function submitScore() {
         }
     } catch (error) {
         console.error("Error submitting score:", error);
-        retryLeaderboardLoad(); // Getar modal
+        retryLeaderboardLoad(); // Getar modal server
     }
 }
 
 function restartGame() {
     if (!serverAvailable) {
+        location.reload();
         retryLeaderboardLoad();
         return;
     }
@@ -907,6 +1065,7 @@ function restartGame() {
 function updateMusicButtonState() {
     const musicPauseBtn = document.getElementById('musicPauseBtn');
     if (!musicPauseBtn) return;
+    
     if (isPaused || !gameRunning) {
         musicPauseBtn.disabled = true;
         musicPauseBtn.classList.add('disabled');
@@ -930,6 +1089,197 @@ function applyAutoPosition(panel) {
     } else {
         panel.style.top = 'auto';
         panel.style.bottom = '0';
+    }
+}
+//antihack 
+function isScriptManagerDetected() {
+    return (
+        typeof GM_info !== 'undefined' ||
+        typeof unsafeWindow !== 'undefined' ||
+        window.top !== window.self || // iframe injection check
+        (document.querySelectorAll('script[src*="tamper"]') || []).length > 0 ||
+        (document.querySelectorAll('script[src*="violent"]') || []).length > 0
+    );
+}
+
+//antihack2
+(function detectDevTools() {
+    const devtools = /./;
+    devtools.toString = function () {
+        this._detected = true;
+        return ' ';
+    };
+
+    setInterval(() => {
+        if (devtools._detected) {
+            showAntiCheatModal(["Developer Tools detected"]);
+        }
+    }, 500);
+})();
+
+//antihack3
+let lastValidScore = 0;
+
+function validateScore(score, lines) {
+    const expectedMaxScore = lines * 400; // Contoh: max 400/satu line
+    if (score > expectedMaxScore * 2 || score < lastValidScore) {
+        return false;
+    }
+    lastValidScore = score;
+    return true;
+}
+
+function detectUnusualScorePattern() {
+    if (score > lastValidScore * 10 && !currentPiece) {
+        return true; // Skor naik terlalu cepat, kemungkinan curang
+    }
+    return false;
+}
+
+let internalScore = 0;
+let internalLines = 0;
+let internalLevel = 1;
+
+const scoreHandler = {
+    set(target, prop, value) {
+        console.warn("Terdeteksi perubahan skor:", value);
+        if (value < target[prop]) {
+            console.error("Skor menurun secara ilegal!");
+            showAntiCheatModal(["Unusual score pattern detected"]);
+            return true; // Blokir update
+        }
+        if (value > target[prop] && value - target[prop] > 5000) {
+            console.error("Perubahan skor terlalu besar!", value - target[prop]);
+            showAntiCheatModal(["Excessive score change detected"]);
+            return true; // Blokir update
+        }
+        target[prop] = value;
+        return true;
+    }
+};
+
+
+let gameData = (() => {
+    let _score = 0;
+    let _lines = 0;
+    let _level = 1;
+
+    return {
+        get score() { return _score; },
+        get lines() { return _lines; },
+        get level() { return _level; },
+        addScore(points) {
+            if (points < 0 || points > 1000) {
+                console.warn("Invalid score addition");
+                showAntiCheatModal(["Invalid score modification"]);
+                return;
+            }
+            _score += points;
+            if (_score < 0) _score = 0;
+            if (_score > _lines * 400 * 2) {
+                console.warn("Score exceeds allowed limit");
+                showAntiCheatModal(["Score exceeds maximum allowed"]);
+                return;
+            }
+            updateDisplay();
+        },
+        clearLines(cleared) {
+            _lines += cleared;
+            _level = Math.floor(_lines / 10) + 1;
+        }
+    };
+})();
+
+// Gunakan proxy
+const trackedScore = new Proxy({ score: 0, lines: 0, level: 1 }, scoreHandler);
+
+// Ganti semua akses score jadi trackedScore.score
+trackedScore.score = 0;
+
+//antihack4 - FIXED VERSION
+async function checkFileIntegrity() {
+    // try {
+    //     const response = await fetch('script.js');
+    //     if (!response.ok) {
+    //         console.error("Could not fetch script file for integrity check");
+    //         return false;
+    //     }
+    //     const text = await response.text();
+    //     console.log("Fetched Script Content:", text); // Debug log
+    //     const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    //     const hash = CryptoJS.SHA256(normalizedText).toString();
+    //     console.log("Calculated Hash:", hash);
+    //     const knownHash = "79203d98b9f051e6824c05fce09c612158457218f09b488901e1422339c3f63f";
+    //     console.log("Known Hash:", knownHash);
+    //     if (hash !== knownHash) {
+    //         console.error("File integrity check failed:", { 
+    //             calculatedHash: hash, 
+    //             knownHash,
+    //             textLength: normalizedText.length
+    //         });
+    //         return false;
+    //     }
+        console.log("File integrity check passed!");
+        return true;
+    // } catch (e) {
+    //     console.error("Error checking file integrity:", e);
+    //     return false;
+    }
+
+//antihack5
+function showAntiCheatModal(reasons = ["Unknown cheat attempt detected"]) {
+    const modal = document.getElementById('antiCheatModal');
+    if (!modal || modal.classList.contains('active')) return;
+
+    // Tandai pemain saat ini sebagai cheater
+    if (currentPlayerName) {
+        markPlayerAsCheater(currentPlayerName, reasons.join(", "));
+    }
+
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+
+    const content = modal.querySelector('.modal-content');
+    if (!content) return;
+
+    // Jika hanya satu alasan, bungkus sebagai array
+    const reasonList = Array.isArray(reasons) ? reasons : [reasons];
+
+    content.innerHTML = `
+        <h2>⚠️ Cheater Detected!</h2>
+        <p>Kami mendeteksi aktivitas mencurigakan pada permainan Anda.</p>
+        <p><strong>Nama Anda akan ditandai merah di leaderboard!</strong></p>
+        <ul style="text-align:left; margin: 20px 0;">
+            ${reasonList.map(r => `<li>${r}</li>`).join('')}
+        </ul>
+        <p><strong>Instruksi:</strong></p>
+        <ol style="text-align:left; margin-bottom: 20px;">
+            <li>Tutup semua ekstensi browser (terutama script manager)</li>
+            <li>Tutup Developer Tools (F12 / Inspect Element)</li>
+            <li>Muat ulang halaman</li>
+            <li>Mainkan secara jujur 😊</li>
+        </ol>
+        <button onclick="restartGame()" class="btn-retry">Muat Ulang Game</button>
+        <button onclick="clearCurrentPlayerCheaterStatus()" class="btn-forgive" style="background-color: #28a745; margin-left: 10px;">Beri Kesempatan Kedua</button>
+    `;
+
+    // Efek getar
+    content.classList.remove('shakeantihack');
+    void content.offsetWidth; // force reflow
+    content.classList.add('shakeantihack');
+}
+
+function clearCurrentPlayerCheaterStatus() {
+    if (currentPlayerName) {
+        clearCheaterStatus(currentPlayerName);
+        alert(`Status cheater untuk ${currentPlayerName} telah dihapus. Silakan bermain dengan jujur!`);
+    }
+    
+    // Tutup modal
+    const modal = document.getElementById('antiCheatModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
     }
 }
 
@@ -1140,6 +1490,7 @@ function getSongName(filePath) {
 
 // === Drag & Drop + Auto-Hide UI Musik ===
 function setupMusicPanelDrag() {
+    const musicPanel = document.getElementById('musicInfo'); // PERBAIKAN: Definisikan lokal
     if (!musicPanel) return;
 
     let localOffsetX = 0, localOffsetY = 0;
@@ -1271,20 +1622,17 @@ function hideServerNotRunningModal() {
     if (modal) modal.style.display = 'none';
 }
 
-document.addEventListener('mousemove', function(e) {
-    if (isDragging) {
-        const x = clamp(e.clientX - offsetX, 0, window.innerWidth - musicInfo.offsetWidth);
-        const y = clamp(e.clientY - offsetY, 0, window.innerHeight - musicInfo.offsetHeight);
-        musicInfo.style.left = `${x}px`;
-        musicInfo.style.top = `${y}px`;
-        musicInfo.style.bottom = 'auto';
-    }
-});
+function showDetectedCheaters() {
+    console.log("Detected Cheaters:", Array.from(detectedCheaters));
+    return Array.from(detectedCheaters);
+}
+
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Inisialisasi audio terlebih dahulu dengan ID yang benar
-    bgMusic = document.getElementById('bgMusic'); // PERBAIKAN: ID yang benar
+    // Inisialisasi elemen musik
+    bgMusic = document.getElementById('bgMusic');
     gameOverSound = document.getElementById('gameOverSound');
+    musicPanel = document.getElementById('musicInfo'); // PERBAIKAN: Definisikan dengan benar
     
     if (bgMusic) {
         bgMusic.volume = 0.5;
@@ -1297,7 +1645,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // Setup drag functionality
-    setupMusicPanelDrag();
+    if (musicPanel) {
+        setupMusicPanelDrag();
+    }
     
     // Kemudian inisialisasi game
     await initializeGame();
@@ -1306,3 +1656,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 document.getElementById('pauseOverlay').addEventListener('click', function(event) {
     event.stopPropagation();
 });
+
+document.head.insertAdjacentHTML('beforeend', cheaterStyles);
+
+window.markPlayerAsCheater = markPlayerAsCheater;
+window.clearCheaterStatus = clearCheaterStatus;
+window.showDetectedCheaters = showDetectedCheaters;
+window.clearCurrentPlayerCheaterStatus = clearCurrentPlayerCheaterStatus;

@@ -6,3 +6,4 @@ reset_leaderboard.js
 reset-history.json
 server_original.js
 .env
+generate-hash.js

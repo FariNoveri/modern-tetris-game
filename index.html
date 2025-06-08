@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> 
     <link rel="stylesheet" href="style.css">
     <title>Enhanced Tetris Game</title>
 </head>
@@ -13,6 +14,28 @@
         <source src="music/game-music-loop-2-144037.mp3" type="audio/mpeg">
         Browser tidak mendukung format audio.
     </audio>
+
+    <!-- Anti-Cheat Detection Modal -->
+<div class="anti-cheat-modal" id="antiCheatModal">
+    <div class="modal-content shake">
+        <h2>⚠️ Cheater Detected!</h2>
+        <p>Kami mendeteksi aktivitas mencurigakan pada permainan Anda.</p>
+        <ul style="text-align:left; margin: 20px 0;">
+            <li>Tampermonkey / ViolentMonkey terdeteksi</li>
+            <li>Console / DevTools terbuka</li>
+            <li>Skor tidak logis atau dimodifikasi</li>
+            <li>File JavaScript telah diedit</li>
+        </ul>
+        <p><strong>Instruksi:</strong></p>
+        <ol style="text-align:left; margin-bottom: 20px;">
+            <li>Tutup semua ekstensi browser (terutama script manager)</li>
+            <li>Tutup Developer Tools (F12 / Inspect Element)</li>
+            <li>Muat ulang halaman</li>
+            <li>Mainkan secara jujur 😊</li>
+        </ol>
+        <button onclick="restartGame()" class="btn-retry">Muat Ulang Game</button>
+    </div>
+</div>
 
     <!-- Game Over Sound -->
     <audio id="gameOverSound" preload="auto">
@@ -126,6 +149,7 @@
     </div>
 
     <!-- Load JavaScript -->
+
     <script src="script.js"></script>
 </body>
 </html>
