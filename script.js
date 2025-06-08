@@ -9,7 +9,7 @@ const TETROMINOS = {
     J: { shape: [[1,0,0],[1,1,1]], color: 'J' },
     L: { shape: [[0,0,1],[1,1,1]], color: 'L' }
 };
-
+const musicPanel = document.getElementById('musicInfo')
 // Wall kick data untuk Super Rotation System (SRS)
 const WALL_KICKS = {
     // Normal pieces (T, S, Z, J, L)
@@ -51,10 +51,18 @@ let dropInterval = null;
 let currentPlayerName = '';
 let combo = 0;
 let comboTimeout = null;
-
+let bgMusic = null;
+let gameOverSound = null;
+let isBgMusicPausedByUser = false;
+let isServerModalVisible = false;
+let isDragging = false;
+let serverAvailable = false;
+let hasShownCustomError = false; // Untuk mencegah spam pesan
 // Store data in memory instead of localStorage
 let leaderboardData = [];
-
+let suppressDefaultErrors = true; // Untuk mengontrol apakah kita sembunyikan error browser
+let offsetX = 0;
+let offsetY = 0;
 // Input control variables - PERBAIKAN SISTEM HOLD
 let inputState = {
     left: false,
@@ -95,39 +103,87 @@ function saveLeaderboard(leaderboard) {
 
 let isInitialized = false;
 
-async function initializeGame() {
-    if (isInitialized) return; // Hindari duplikasi
-    
-    isInitialized = true;
-    initializeEventListeners();
-    init();
-    
-    // Load leaderboard dari server
+// Contoh penggunaan fetch yang lebih aman
+async function checkServerAvailability() {
     try {
-        leaderboardData = await loadLeaderboardFromServer();
-        updateLeaderboardDisplay();
-    } catch (error) {
-        console.error('Error loading initial leaderboard:', error);
-        leaderboardData = [];
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1000);
+
+        const response = await fetch('http://localhost:3000/leaderboard', {
+            method: 'HEAD',
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        serverAvailable = response.ok;
+        return response.ok;
+    } catch (e) {
+        serverAvailable = false;
+        return false;
     }
-}   
+}
+
+// MASALAH 9: Perbaikan di initializeGame
+async function initializeGame() {
+    if (isInitialized) return;
+
+    const available = await checkServerAvailability();
+    if (!available) {
+        showServerNotRunningModal();
+        hasShownCustomError = false;
+        return;
+    }
+
+    serverAvailable = true;
+    isInitialized = true;
+
+    initializeEventListeners();
+    setupMusicPanelDrag(); // TAMBAHKAN INI
+    init();
+    leaderboardData = await loadLeaderboardFromServer();
+    updateLeaderboardDisplay();
+}
 
 async function loadLeaderboardFromServer() {
     try {
         const response = await fetch('http://localhost:3000/leaderboard');
         if (response.ok) {
-            const serverData = await response.json();
-            return serverData || [];
+            const data = await response.json();
+            hideServerNotRunningModal(); // Sembunyikan popup jika berhasil
+            return data || [];
         } else {
-            // Fallback ke localStorage jika server tidak available
-            const backup = localStorage.getItem('tetris_leaderboard');
-            return backup ? JSON.parse(backup) : [];
+            throw new Error("Server not available");
         }
     } catch (error) {
         console.error('Error loading leaderboard:', error);
-        // Fallback ke localStorage
-        const backup = localStorage.getItem('tetris_leaderboard');
-        return backup ? JSON.parse(backup) : [];
+        showServerNotRunningModal(); // Tampilkan popup error
+        return []; // Kembalikan array kosong sementara
+    }
+}
+
+async function retryLeaderboardLoad() {
+    try {
+        const response = await fetch('http://localhost:3000/leaderboard');
+        if (response.ok) {
+            leaderboardData = await response.json();
+            updateLeaderboardDisplay();
+            hideServerNotRunningModal();
+            serverAvailable = true;
+        }
+    } catch (error) {
+        // Tampilkan pesan kustom hanya sekali
+        if (!hasShownCustomError && suppressDefaultErrors) {
+            console.error("Harap start node server.js di terminal.\nKalau masih anda spam percuma saja....\nGame ini dibuat oleh Fari Noveri\nThis game was made by Fari Noveri");
+            hasShownCustomError = true;
+        }
+
+        // Efek getar pada modal
+        const modalContent = document.querySelector('#serverNotRunningModal .server-modal-content');
+        if (modalContent) {
+            modalContent.classList.remove('shake');
+            void modalContent.offsetWidth; // force reflow to restart animation
+            modalContent.classList.add('shake');
+        }
     }
 }
 
@@ -201,6 +257,9 @@ function updateLeaderboardDisplay() {
 function startHoldAction(action) {
     if (inputTimers[action]) return; // Sudah aktif
     
+    // PERBAIKAN: Cek state sebelum eksekusi
+    if (!gameRunning || isPaused) return;
+    
     // Eksekusi sekali langsung
     executeAction(action);
     
@@ -208,8 +267,12 @@ function startHoldAction(action) {
     inputTimers[action] = setTimeout(() => {
         // Mulai interval repeat
         inputIntervals[action] = setInterval(() => {
-            if (inputState[action] && gameRunning && !isPaused) {
+            // PERBAIKAN: Tambahkan pengecekan state di setiap interval
+            if (inputState[action] && gameRunning && !isPaused && currentPiece) {
                 executeAction(action);
+            } else {
+                // Hentikan interval jika kondisi tidak memenuhi
+                stopHoldAction(action);
             }
         }, getRepeatRate(action));
     }, INITIAL_DELAY);
@@ -224,6 +287,11 @@ function stopHoldAction(action) {
     if (inputIntervals[action]) {
         clearInterval(inputIntervals[action]);
         inputIntervals[action] = null;
+    }
+    
+    // PERBAIKAN: Reset input state juga
+    if (inputState[action]) {
+        inputState[action] = false;
     }
 }
 
@@ -240,7 +308,8 @@ function getRepeatRate(action) {
 }
 
 function executeAction(action) {
-    if (!gameRunning || isPaused) return;
+    // PERBAIKAN: Tambahkan pengecekan state yang lebih ketat
+    if (!gameRunning || isPaused || !currentPiece) return;
     
     switch(action) {
         case 'left':
@@ -280,7 +349,6 @@ function executeAction(action) {
             break;
     }
 }
-
 // Combo system
 function showCombo(comboCount) {
     const comboDisplay = document.getElementById('comboDisplay');
@@ -317,8 +385,10 @@ function resetCombo() {
 
 // Initialize game
 function init() {
+    const rows = 20;
+    const cols = 10;
+    createGrid(rows, cols);
     createBoard();
-    createGrid();
     nextPiece = getRandomPiece();
     spawnPiece();
     updateDisplay();
@@ -330,13 +400,13 @@ function createBoard() {
     board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
 }
 
-function createGrid() {
+function createGrid(rows, cols) {
     const grid = document.getElementById('grid');
     if (!grid) return;
     
     grid.innerHTML = '';
     
-    for (let i = 0; i < BOARD_HEIGHT * BOARD_WIDTH; i++) {
+    for (let i = 0; i < rows * cols; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
         grid.appendChild(cell);
@@ -543,6 +613,44 @@ function getAllRotations(basePiece) {
     return rotations;
 }
 
+function toggleMusicPause() {
+    const musicPauseBtn = document.getElementById('musicPauseBtn');
+    if (!bgMusic || !musicPauseBtn) return;
+
+    // JIKA GAME PAUSE ATAU GAME OVER, BLOKIR FUNGSI RESUME MUSIK
+    if (isPaused || !gameRunning) {
+        // Reset ke paused jika coba di-unpause saat game pause
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        musicPauseBtn.textContent = '▶️ Resume Music';
+        alert("Musik tidak bisa diatur saat game di-pause atau game over.");
+        return;
+    }
+
+    // JIKA GAME BERJALAN, IZINKAN PAUSE/RESUME MUSIK
+    if (bgMusic.paused) {
+        bgMusic.play().catch(e => console.log("Playback error:", e));
+        musicPauseBtn.textContent = '⏸️ Pause Music';
+    } else {
+        bgMusic.pause();
+        musicPauseBtn.textContent = '▶️ Resume Music';
+    }
+}
+
+function setVolume(value) {
+    if (!bgMusic || !gameOverSound) return;
+
+    bgMusic.volume = parseFloat(value);
+    gameOverSound.volume = parseFloat(value);
+}
+
+function testAudio() {
+    if (bgMusic && bgMusic.paused) {
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(e => console.log("Error playing music:", e));
+    }
+}
+
 // Fungsi untuk mencoba rotasi dengan wall kick
 function tryRotate() {
     if (!currentPiece) return false;
@@ -628,6 +736,9 @@ function updateDisplay() {
 }
 
 function drop() {
+    // PERBAIKAN: Tambahkan pengecekan state
+    if (!gameRunning || isPaused || !currentPiece) return;
+    
     if (isCollision(currentX, currentY + 1, currentPiece.shape)) {
         placePiece();
         clearLines();
@@ -640,14 +751,28 @@ function drop() {
 
 function startGame() {
     gameRunning = true;
-    startGameLoop();
+    startGameLoop(); // TAMBAHKAN INI
+
+    // Jika bgMusic tidak ditemukan, jangan lanjut
+    if (!bgMusic) {
+        console.warn("Audio element bgMusic tidak tersedia.");
+        return;
+    }
+
+    // Reset musik dan coba putar
+    try {
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(e => console.log("Autoplay diblokir oleh browser:", e));
+    } catch (e) {
+        console.error("Gagal memulai musik latar:", e);
+    }
 }
 
 function startGameLoop() {
     clearInterval(dropInterval);
     const dropTime = Math.max(50, 1000 - (level - 1) * 100);
     dropInterval = setInterval(() => {
-        if (!isPaused && gameRunning) {
+        if (gameRunning && !isPaused && currentPiece) {
             drop();
         }
     }, dropTime);
@@ -656,33 +781,39 @@ function startGameLoop() {
 function gameOver() {
     gameRunning = false;
     clearInterval(dropInterval);
-    
-    // Stop all input actions
-    Object.keys(inputState).forEach(action => {
-        inputState[action] = false;
-        stopHoldAction(action);
-    });
-    
-    const finalScoreElement = document.getElementById('finalScore');
-    const finalLinesElement = document.getElementById('finalLines');
-    const finalLevelElement = document.getElementById('finalLevel');
-    const gameOverElement = document.getElementById('gameOver');
-    const playerNameElement = document.getElementById('playerName');
-    
-    if (finalScoreElement) finalScoreElement.textContent = score;
-    if (finalLinesElement) finalLinesElement.textContent = lines;
-    if (finalLevelElement) finalLevelElement.textContent = level;
-    if (gameOverElement) gameOverElement.style.display = 'flex';
-    if (playerNameElement) playerNameElement.focus();
-}
 
+    // Hentikan musik latar
+    if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+    }
+
+    // Mainkan efek suara game over
+    if (gameOverSound) {
+        gameOverSound.currentTime = 0;
+        gameOverSound.play().catch(e => console.log("Error playing sound:", e));
+    }
+
+    // Sembunyikan UI musik
+    const musicInfo = document.getElementById('musicInfo');
+    if (musicPanel) musicPanel.style.display = 'none';
+
+    // Tampilkan modal game over
+    const gameOverElement = document.getElementById('gameOver');
+    if (gameOverElement) gameOverElement.style.display = 'flex';
+}
 
 // PERBAIKAN 1: Fungsi submitScore() - Hindari duplikasi
 async function submitScore() {
+    if (!serverAvailable) {
+        retryLeaderboardLoad(); // Getar modal
+        return;
+    }
+
     const nameInput = document.getElementById('playerName');
-    if (!nameInput) return;
     const name = nameInput.value.trim();
-    if (!name || name === '') {
+
+    if (!name) {
         alert("Please enter your name.");
         nameInput.focus();
         return;
@@ -691,53 +822,46 @@ async function submitScore() {
     try {
         const response = await fetch('http://localhost:3000/submit-score', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name,
-                score,
-                lines,
-                level
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, score, lines, level })
         });
 
         if (response.ok) {
-            // PERBAIKAN: Reload data dari server instead of adding locally
             leaderboardData = await loadLeaderboardFromServer();
             updateLeaderboardDisplay();
-            
-            // Hide submit button setelah berhasil submit
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) submitBtn.style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'none';
         } else {
-            // Fallback: tambah ke local jika server gagal
-            addToLeaderboard(name, score, lines, level);
+            throw new Error("Server error");
         }
     } catch (error) {
-        console.error('Error submitting score:', error);
-        alert("Network error. Score saved locally.");
-        // Fallback: tambah ke local jika network error
-        addToLeaderboard(name, score, lines, level);
+        console.error("Error submitting score:", error);
+        retryLeaderboardLoad(); // Getar modal
     }
 }
 
 function restartGame() {
+    if (!serverAvailable) {
+        retryLeaderboardLoad();
+        return;
+    }
+
+    // Reset UI elements
     const gameOverElement = document.getElementById('gameOver');
     const submitBtn = document.getElementById('submitBtn');
     const playerNameElement = document.getElementById('playerName');
     const pauseBtn = document.getElementById('pauseBtn');
     const pauseOverlay = document.getElementById('pauseOverlay');
-    
+
     if (gameOverElement) gameOverElement.style.display = 'none';
     if (submitBtn) {
-        submitBtn.style.display = 'inline-block'; // PERBAIKAN: Tampilkan kembali submit button
-        submitBtn.disabled = false; // PERBAIKAN: Enable button
+        submitBtn.style.display = 'inline-block';
+        submitBtn.disabled = false;
     }
     if (playerNameElement) playerNameElement.value = '';
     if (pauseBtn) pauseBtn.textContent = 'Pause';
     if (pauseOverlay) pauseOverlay.style.display = 'none';
-    
+
+    // Reset game state
     score = 0;
     level = 1;
     lines = 0;
@@ -745,116 +869,175 @@ function restartGame() {
     isPaused = false;
     currentPlayerName = '';
     currentRotation = 0;
-    
-    // Reset input state
+
+    // PERBAIKAN: Reset semua input state dan timer
     Object.keys(inputState).forEach(action => {
         inputState[action] = false;
         stopHoldAction(action);
     });
-    
+
+    // Clear intervals
     clearInterval(dropInterval);
     if (comboTimeout) {
         clearTimeout(comboTimeout);
         comboTimeout = null;
     }
+
+    // PERBAIKAN: Reset semua timer input
+    Object.keys(inputTimers).forEach(action => {
+        if (inputTimers[action]) {
+            clearTimeout(inputTimers[action]);
+            inputTimers[action] = null;
+        }
+    });
+
+    Object.keys(inputIntervals).forEach(action => {
+        if (inputIntervals[action]) {
+            clearInterval(inputIntervals[action]);
+            inputIntervals[action] = null;
+        }
+    });
+
+    const songTitle = document.getElementById('songTitle');
+    if (songTitle) songTitle.textContent = "Retro Beat Loop";
+
     init();
+}
+
+function updateMusicButtonState() {
+    const musicPauseBtn = document.getElementById('musicPauseBtn');
+    if (!musicPauseBtn) return;
+    if (isPaused || !gameRunning) {
+        musicPauseBtn.disabled = true;
+        musicPauseBtn.classList.add('disabled');
+    } else {
+        musicPauseBtn.disabled = false;
+        musicPauseBtn.classList.remove('disabled');
+    }
+}
+
+function applyAutoPosition(panel) {
+    const windowHeight = window.innerHeight;
+    const panelRect = panel.getBoundingClientRect();
+    const centerY = windowHeight / 2;
+
+    if (panelRect.top < centerY && panelRect.bottom > centerY) {
+        panel.style.top = 'auto';
+        panel.style.bottom = '0';
+    } else if (panelRect.bottom <= centerY) {
+        panel.style.top = '0';
+        panel.style.bottom = 'auto';
+    } else {
+        panel.style.top = 'auto';
+        panel.style.bottom = '0';
+    }
 }
 
 function togglePause() {
     if (!gameRunning) return;
-    
     isPaused = !isPaused;
-    
     const pauseBtn = document.getElementById('pauseBtn');
     const pauseOverlay = document.getElementById('pauseOverlay');
-    
     if (pauseBtn) pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
     if (pauseOverlay) pauseOverlay.style.display = isPaused ? 'flex' : 'none';
-    
-    // Stop all input actions when paused
-    if (isPaused) {
-        Object.keys(inputState).forEach(action => {
-            stopHoldAction(action);
-        });
+
+    // Pause or resume music based on game pause state
+    if (bgMusic) {
+        if (isPaused) {
+            bgMusic.pause();
+        } else {
+            bgMusic.play().catch(e => console.log("Error resuming music:", e));
+        }
     }
+
+    updateMusicButtonState(); // Update music button state
 }
 
 // Initialize event listeners when DOM is ready
 function initializeEventListeners() {
     // PERBAIKAN KEYBOARD CONTROLS - SISTEM HOLD YANG PROPER
-    document.addEventListener('keydown', (e) => {
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-            e.preventDefault();
-        }
-        
-        if (!gameRunning || isPaused) return;
-        
-        let action = null;
-        switch(e.key) {
-            case 'ArrowLeft':
-                action = 'left';
-                break;
-            case 'ArrowRight':
-                action = 'right';
-                break;
-            case 'ArrowDown':
-                action = 'down';
-                break;
-            case 'ArrowUp':
-                action = 'up';
-                break;
-            case ' ':
-                action = 'space';
-                break;
-        }
-        
-        if (action && !inputState[action]) {
-            inputState[action] = true;
-            
-            if (action === 'up' || action === 'space') {
-                // Rotate dan hard drop hanya sekali dengan cooldown
-                if (!inputTimers[action]) {
-                    executeAction(action);
-                    inputTimers[action] = setTimeout(() => {
-                        inputTimers[action] = null;
-                    }, ACTION_COOLDOWN);
-                }
-            } else {
-                // Left, right, down bisa hold
-                startHoldAction(action);
-            }
-        }
-    });
-
-    document.addEventListener('keyup', (e) => {
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-            e.preventDefault();
-        }
-        
-        let action = null;
-        switch(e.key) {
-            case 'ArrowLeft':
-                action = 'left';
-                break;
-            case 'ArrowRight':
-                action = 'right';
-                break;
-            case 'ArrowDown':
-                action = 'down';
-                break;
-            case 'ArrowUp':
-                action = 'up';
-                break;
-            case ' ':
-                action = 'space';
-                break;
-        }
-        
-        if (action) {
+document.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+    }
+    
+    // PERBAIKAN: Tambahkan pengecekan pause untuk semua input
+    if (!gameRunning || isPaused) {
+        // Reset input state jika game tidak berjalan atau di-pause
+        Object.keys(inputState).forEach(action => {
             inputState[action] = false;
             stopHoldAction(action);
+        });
+        return;
+    }
+    
+    let action = null;
+    switch(e.key) {
+        case 'ArrowLeft':
+            action = 'left';
+            break;
+        case 'ArrowRight':
+            action = 'right';
+            break;
+        case 'ArrowDown':
+            action = 'down';
+            break;
+        case 'ArrowUp':
+            action = 'up';
+            break;
+        case ' ':
+            action = 'space';
+            break;
+    }
+    
+    if (action && !inputState[action]) {
+        inputState[action] = true;
+        
+        if (action === 'up' || action === 'space') {
+            // Rotate dan hard drop hanya sekali dengan cooldown
+            if (!inputTimers[action]) {
+                executeAction(action);
+                inputTimers[action] = setTimeout(() => {
+                    inputTimers[action] = null;
+                }, ACTION_COOLDOWN);
+            }
+        } else {
+            // Left, right, down bisa hold
+            startHoldAction(action);
         }
-    });
+    }
+});
+
+ document.addEventListener('keyup', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+    }
+    
+    let action = null;
+    switch(e.key) {
+        case 'ArrowLeft':
+            action = 'left';
+            break;
+        case 'ArrowRight':
+            action = 'right';
+            break;
+        case 'ArrowDown':
+            action = 'down';
+            break;
+        case 'ArrowUp':
+            action = 'up';
+            break;
+        case ' ':
+            action = 'space';
+            break;
+    }
+    
+    if (action) {
+        inputState[action] = false;
+        stopHoldAction(action);
+    }
+});
+
 
     // PERBAIKAN TOUCH CONTROLS - MIRIP DENGAN SISTEM HOLD
     let touchStartX = 0;
@@ -923,17 +1106,203 @@ function initializeEventListeners() {
     }
     
     // Pause key handler
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-            togglePause();
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        togglePause();
+    }
+});
+
+}
+
+function changeBackgroundMusic() {
+    const playlist = document.getElementById('musicPlaylist');
+    const selectedFile = playlist.value;
+
+    if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+        bgMusic.src = selectedFile;
+        if (!isPaused && gameRunning && !isBgMusicPausedByUser) {
+            bgMusic.play().catch(e => console.log("Autoplay blocked:", e));
         }
+
+        const songTitle = document.getElementById('songTitle');
+        if (songTitle) {
+            songTitle.textContent = getSongName(selectedFile);
+        }
+    }
+}
+
+function getSongName(filePath) {
+    return filePath.split('/').pop().replace('.mp3', '').replace(/[-_]/g, ' ');
+}
+
+// === Drag & Drop + Auto-Hide UI Musik ===
+function setupMusicPanelDrag() {
+    if (!musicPanel) return;
+
+    let localOffsetX = 0, localOffsetY = 0;
+
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    // Mousedown = mulai drag
+    musicPanel.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        localOffsetX = e.clientX - musicPanel.offsetLeft;
+        localOffsetY = e.clientY - musicPanel.offsetTop;
+        musicPanel.style.transition = 'none';
+    });
+
+    // Mousemove = saat drag - PERBAIKAN: gunakan musicPanel konsisten
+    document.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            const x = clamp(e.clientX - localOffsetX, 0, window.innerWidth - musicPanel.offsetWidth);
+            const y = clamp(e.clientY - localOffsetY, 0, window.innerHeight - musicPanel.offsetHeight);
+            musicPanel.style.left = `${x}px`;
+            musicPanel.style.top = `${y}px`;
+            musicPanel.style.bottom = 'auto';
+        }
+    });
+
+    // Mouseup = selesai drag → auto posisi
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            applyAutoPosition(musicPanel);
+        }
+    });
+
+    // Touch support
+    musicPanel.addEventListener('touchstart', function(e) {
+        const touch = e.touches[0];
+        isDragging = true;
+        localOffsetX = touch.clientX - musicPanel.offsetLeft;
+        localOffsetY = touch.clientY - musicPanel.offsetTop;
+        musicPanel.style.transition = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('touchmove', function(e) {
+        if (isDragging) {
+            const touch = e.touches[0];
+            const x = clamp(touch.clientX - localOffsetX, 0, window.innerWidth - musicPanel.offsetWidth);
+            const y = clamp(touch.clientY - localOffsetY, 0, window.innerHeight - musicPanel.offsetHeight);
+            musicPanel.style.left = `${x}px`;
+            musicPanel.style.top = `${y}px`;
+            musicPanel.style.bottom = 'auto';
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener('touchend', function() {
+        if (isDragging) {
+            isDragging = false;
+            applyAutoPosition(musicPanel);
+        }
+    });
+
+    // Auto-hide UI Musik
+    let hideTimeout;
+    function startAutoHide() {
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+            if (!isDragging) {
+                musicPanel.classList.add('hidden');
+            }
+        }, 3000);
+    }
+
+    ['mousemove', 'mousedown', 'touchstart'].forEach(eventType => {
+        document.addEventListener(eventType, () => {
+            clearTimeout(hideTimeout);
+            musicPanel.classList.remove('hidden');
+            startAutoHide();
+        });
+    });
+
+    startAutoHide();
+}
+
+
+function setupNextTrack() {
+    if (!bgMusic) return;
+
+    bgMusic.addEventListener('ended', () => {
+        const playlist = document.getElementById('musicPlaylist');
+        const options = Array.from(playlist.options);
+        const currentIndex = options.findIndex(opt => opt.value === playlist.value);
+
+        const nextIndex = (currentIndex + 1) % options.length;
+        playlist.selectedIndex = nextIndex;
+        changeBackgroundMusic(); // Panggil fungsi ganti musik
     });
 }
 
-// Start the game when DOM is loaded
-document.addEventListener('DOMContentLoaded',async() => {
-    initializeEventListeners();
-    init();
-    leaderboardData = await loadLeaderboardFromServer(); // ambil dari server
-    updateLeaderboardDisplay(); // Memastikan leaderboard langsung muncul
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function initializeAudio() {
+    bgMusic = document.getElementById('bgMusic'); // PERBAIKAN: ID yang benar
+    gameOverSound = document.getElementById('gameOverSound');
+    
+    if (bgMusic) {
+        bgMusic.volume = 0.5;
+        bgMusic.loop = true;
+        setupNextTrack();
+    }
+    
+    if (gameOverSound) {
+        gameOverSound.volume = 0.7;
+    }
+}
+
+function showServerNotRunningModal() {
+    const modal = document.getElementById('serverNotRunningModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+
+function hideServerNotRunningModal() {
+    const modal = document.getElementById('serverNotRunningModal');
+    if (modal) modal.style.display = 'none';
+}
+
+document.addEventListener('mousemove', function(e) {
+    if (isDragging) {
+        const x = clamp(e.clientX - offsetX, 0, window.innerWidth - musicInfo.offsetWidth);
+        const y = clamp(e.clientY - offsetY, 0, window.innerHeight - musicInfo.offsetHeight);
+        musicInfo.style.left = `${x}px`;
+        musicInfo.style.top = `${y}px`;
+        musicInfo.style.bottom = 'auto';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Inisialisasi audio terlebih dahulu dengan ID yang benar
+    bgMusic = document.getElementById('bgMusic'); // PERBAIKAN: ID yang benar
+    gameOverSound = document.getElementById('gameOverSound');
+    
+    if (bgMusic) {
+        bgMusic.volume = 0.5;
+        bgMusic.loop = true;
+        setupNextTrack();
+    }
+    
+    if (gameOverSound) {
+        gameOverSound.volume = 0.7;
+    }
+    
+    // Setup drag functionality
+    setupMusicPanelDrag();
+    
+    // Kemudian inisialisasi game
+    await initializeGame();
+});
+
+document.getElementById('pauseOverlay').addEventListener('click', function(event) {
+    event.stopPropagation();
 });

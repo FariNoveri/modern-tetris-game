@@ -7,6 +7,19 @@
     <title>Enhanced Tetris Game</title>
 </head>
 <body>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="music/game-music-loop-2-144037.mp3" type="audio/mpeg">
+        Browser tidak mendukung format audio.
+    </audio>
+
+    <!-- Game Over Sound -->
+    <audio id="gameOverSound" preload="auto">
+        <source src="music/game-over.mp3" type="audio/mpeg">
+        Browser tidak mendukung format audio.
+    </audio>
+
     <div class="game-container">
         <div class="game-board">
             <div class="grid" id="grid"></div>
@@ -15,32 +28,32 @@
             </div>
             <div class="combo-display" id="comboDisplay"></div>
         </div>
-        
+
         <div class="game-info">
             <div class="info-panel">
                 <h3>Score</h3>
                 <div class="score" id="score">0</div>
             </div>
-            
+
             <div class="info-panel">
                 <h3>Level</h3>
                 <div class="level" id="level">1</div>
             </div>
-            
+
             <div class="info-panel">
                 <h3>Lines</h3>
                 <div class="lines" id="lines">0</div>
             </div>
-            
+
             <div class="info-panel">
                 <h3>Next Piece</h3>
                 <div class="next-piece" id="nextPiece"></div>
             </div>
-            
+
             <div class="info-panel">
                 <button class="btn" onclick="togglePause()" id="pauseBtn">Pause</button>
             </div>
-            
+
             <div class="info-panel controls">
                 <h3>Controls</h3>
                 <p>← → Move</p>
@@ -55,15 +68,47 @@
                 <h3>Leaderboard</h3>
                 <div class="leaderboard">
                     <ul class="leaderboard-list" id="leaderboardList">
-                        <!-- Leaderboard items will be populated here -->
+                        <!-- Leaderboard items akan diisi oleh JavaScript -->
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Load JavaScript -->
-    <script src="script.js"></script>
+    <!-- Modal Notifikasi Server Belum Jalan -->
+    <div id="serverNotRunningModal" class="server-modal">
+        <div class="server-modal-content shake">
+            <h2>Server Tidak Berjalan</h2>
+            <p>Untuk menggunakan fitur leaderboard dan submit score, Anda harus menjalankan server terlebih dahulu.</p>
+            <p><strong>Pastikan:</strong></p>
+            <ul>
+                <li>File <code>server.js</code> tersedia</li>
+                <li>Jalankan dengan perintah: <code>node server.js</code></li>
+            </ul>
+            <button onclick="retryLeaderboardLoad()" class="btn-retry">Coba Lagi</button>
+            <p style="margin-top: 15px; font-size: 14px; color: #ccc;">Popup ini akan hilang otomatis jika server berhasil diakses.</p>
+        </div>
+    </div>
+
+    <!-- Music Info Overlay -->
+    <div class="music-info" id="musicInfo" draggable="true">
+        <div class="now-playing">🎶 Playing Now:</div>
+        <div class="song-title" id="songTitle">Retro Beat Loop</div>
+        <select id="musicPlaylist" onchange="changeBackgroundMusic()" style="margin-top: 5px; padding: 5px;">
+            <option value="music/game-music-loop-2-144037.mp3">Retro Beat Loop</option>
+            <option value="music/retro-8bit-happy-video-music-243998.mp3">Retro Happy</option>
+            <option value="music/bit-beats-1-168243.mp3">Bit Beats</option>
+            <option value="music/game-music-loop-19-153393.mp3">Game Loop 19</option>
+            <option value="music/a-video-game-248444.mp3">Video Game Intro</option>
+            <option value="music/gaming-music-8-bit-console-play-background-intro-theme-278382.mp3">Console Intro</option>
+            <option value="music/game-music-loop-18-153392.mp3">Game Loop 18</option>
+            <option value="music/game-music-loop-20-156390.mp3">Game Loop 20</option>
+            <option value="music/melancholic-dream-217636.mp3">Melancholic Dream</option>
+            <option value="music/christmas-piano-181946.mp3">Christmas Piano</option>
+            <option value="music/christmas-music-180342.mp3">Christmas Jingle</option>
+        </select>
+        <button class="btn-music" onclick="toggleMusicPause()" id="musicPauseBtn">⏸️ Pause Music</button>
+    </div>
 
     <!-- Game Over Modal -->
     <div class="game-over" id="gameOver">
@@ -75,9 +120,12 @@
             <input type="text" class="name-input" id="playerName" placeholder="Enter your name" maxlength="15">
             <div>
                 <button class="btn" onclick="submitScore()" id="submitBtn">Submit Score</button>
-                <button class="btn" onclick="restartGame()" style="margin-left: 10px;">Play Again</button>
+                <button class="btn" onclick="restartGame()">Play Again</button>
             </div>
         </div>
     </div>
+
+    <!-- Load JavaScript -->
+    <script src="script.js"></script>
 </body>
-</html> 
+</html>
