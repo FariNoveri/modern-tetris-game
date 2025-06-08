@@ -1,9 +1,0 @@
-/node_modules
-.env
-encrypt-server.js
-leaderboard-backup.json.enc
-leaderboard.json
-reset_leaderboard.js
-leaderboard.json.enc
-reset-history.json
-server_original.js
