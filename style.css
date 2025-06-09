@@ -16,6 +16,12 @@ body::-webkit-scrollbar {
 }
 
 body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
@@ -448,16 +454,64 @@ body {
     }
 }
 
+/* Fixed Music Playlist Dropdown Styling */
 #musicPlaylist {
     width: 100%;
-    margin: 8px 0;
-    padding: 6px 10px;
-    border-radius: 5px;
-    font-size: 13px;
-    background-color: #333;
+    padding: 10px 15px;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.1);
     color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px); /* Safari */
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1);
+    appearance: none; /* Hapus anak panah default */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22white%22%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    padding-right: 30px; /* Beri ruang untuk ikon */
+}
+
+/* Styling untuk dropdown options (ketika dropdown terbuka) */
+#musicPlaylist option {
+    background-color: rgba(40, 40, 40, 0.95); /* Dark background */
+    color: white;
+    padding: 8px 12px;
     border: none;
-    box-sizing: border-box;
+    font-size: 14px;
+}
+
+/* Hover effect untuk options */
+#musicPlaylist option:hover {
+    background-color: rgba(102, 126, 234, 0.8);
+    color: white;
+}
+
+/* Selected option styling */
+#musicPlaylist option:checked {
+    background-color: rgba(102, 126, 234, 0.9);
+    color: white;
+    font-weight: bold;
+}
+
+/* Focus styling untuk select element */
+#musicPlaylist:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+}
+
+/* Alternative styling untuk browser yang mendukung */
+select#musicPlaylist {
+    color-scheme: dark; /* Memberitahu browser untuk menggunakan dark theme */
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
 }
 
 .music-info {
@@ -487,6 +541,17 @@ body {
     background-color: #333;
     color: white;
     border: none;
+}
+
+/* Styling untuk dropdown options di music-info juga */
+.music-info select option {
+    background-color: rgba(40, 40, 40, 0.95);
+    color: white;
+    padding: 6px 10px;
+}
+
+.music-info select option:hover {
+    background-color: rgba(102, 126, 234, 0.8);
 }
 
 .music-info button {
@@ -712,4 +777,3 @@ body {
         transform: translateX(10px);
     }
 }
-

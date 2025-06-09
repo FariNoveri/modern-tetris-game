@@ -1,30 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> 
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Enhanced Tetris Game</title>
+
+    <!-- CSS External -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- CryptoJS untuk File Integrity Check -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> 
+
+    <!-- Custom Style untuk Cheater Detection (inline) -->
+    <style>
+        /* Anti-Cheat Modal Styles */
+        .anti-cheat-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .anti-cheat-modal .modal-content {
+            background-color: #1a1a1a;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .anti-cheat-modal h2 {
+            color: red;
+        }
+
+        .anti-cheat-modal ul, .anti-cheat-modal ol {
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .btn-retry {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .shake {
+            animation: shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Server Not Running Modal */
+        .server-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .server-modal-content {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .server-modal-content h2 {
+            color: red;
+        }
+
+        .server-modal-content .btn-retry {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Music Info Panel */
+        .music-info {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .music-info.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .now-playing {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .song-title {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+
+        .custom-select {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-music {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Leaderboard Styling */
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard-list li {
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cheater-detected {
+            background-color: rgba(220, 53, 69, 0.1) !important;
+            border-left: 3px solid #dc3545 !important;
+            animation: cheater-pulse 2s infinite;
+        }
+
+        .cheater-name {
+            color: #dc3545 !important;
+            font-weight: bold;
+        }
+
+        @keyframes cheater-pulse {
+            0%, 100% { background-color: rgba(220, 53, 69, 0.1); }
+            50% { background-color: rgba(220, 53, 69, 0.2); }
+        }
+
+        /* Combo Display */
+        .combo-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: gold;
+            z-index: 10;
+        }
+
+        /* Game Over Modal */
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-over-content {
+            background: #222;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .name-input {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+        }
+
+        .controls p {
+            margin: 5px 0;
+        }
+
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto">
-        <source src="music/game-music-loop-2-144037.mp3" type="audio/mpeg">
-        Browser tidak mendukung format audio.
-    </audio>
+<!-- Background Music -->
+<audio id="bgMusic" loop preload="auto">
+    <source src="music/game-music-loop-2-144037.mp3" type="audio/mpeg">
+    Browser tidak mendukung format audio.
+</audio>
 
-    <!-- Anti-Cheat Detection Modal -->
+<!-- Event Music -->
+<audio id="eventMusic" preload="auto">
+    <source src="music/event_chinese_new_year.mp3" type="audio/mpeg">
+    Browser tidak mendukung format audio.
+</audio>
+
+<!-- Game Over Sound -->
+<audio id="gameOverSound" preload="auto">
+    <source src="music/game-over.mp3" type="audio/mpeg">
+    Browser tidak mendukung format audio.
+</audio>
+
+<!-- Anti-Cheat Detection Modal -->
 <div class="anti-cheat-modal" id="antiCheatModal">
     <div class="modal-content shake">
         <h2>⚠️ Cheater Detected!</h2>
         <p>Kami mendeteksi aktivitas mencurigakan pada permainan Anda.</p>
         <ul style="text-align:left; margin: 20px 0;">
             <li>Tampermonkey / ViolentMonkey terdeteksi</li>
-            <li>Console / DevTools terbuka</li>
-            <li>Skor tidak logis atau dimodifikasi</li>
-            <li>File JavaScript telah diedit</li>
+            <li>Developer Tools (F12) terbuka</li>
+            <li>Skor dimodifikasi secara ilegal</li>
+            <li>File JavaScript diubah/tidak asli</li>
         </ul>
         <p><strong>Instruksi:</strong></p>
         <ol style="text-align:left; margin-bottom: 20px;">
@@ -34,122 +268,130 @@
             <li>Mainkan secara jujur 😊</li>
         </ol>
         <button onclick="restartGame()" class="btn-retry">Muat Ulang Game</button>
+        <button onclick="clearCurrentPlayerCheaterStatus()" class="btn-retry" style="margin-top: 10px;">Beri Kesempatan Lagi</button>
     </div>
 </div>
 
-    <!-- Game Over Sound -->
-    <audio id="gameOverSound" preload="auto">
-        <source src="music/game-over.mp3" type="audio/mpeg">
-        Browser tidak mendukung format audio.
-    </audio>
+<!-- Server Tidak Jalan Modal -->
+<div class="server-modal" id="serverNotRunningModal">
+    <div class="server-modal-content shake">
+        <h2>⚠️ Server Tidak Berjalan</h2>
+        <p>Untuk menggunakan fitur leaderboard dan submit score, silakan jalankan server Node.js terlebih dahulu.</p>
+        <p><strong>Pastikan:</strong></p>
+        <ul style="text-align:left; margin: 10px 0;">
+            <li>File <code>server.js</code> tersedia</li>
+            <li>Jalankan dengan perintah: <code>node server.js</code></li>
+        </ul>
+        <button onclick="retryLeaderboardLoad()" class="btn-retry">Coba Lagi</button>
+        <p style="margin-top: 15px; font-size: 14px; color: #ccc;">Popup ini akan hilang otomatis jika server berhasil diakses.</p>
+    </div>
+</div>
 
-    <div class="game-container">
-        <div class="game-board">
-            <div class="grid" id="grid"></div>
-            <div class="pause-overlay" id="pauseOverlay">
-                <div class="pause-text">GAME PAUSED</div>
-            </div>
-            <div class="combo-display" id="comboDisplay"></div>
+<!-- Utama -->
+<div class="game-container">
+    <div class="game-board">
+        <div class="grid" id="grid"></div>
+        <div class="pause-overlay" id="pauseOverlay" style="display: none;">
+            <div class="pause-text">GAME PAUSED</div>
+        </div>
+        <div class="combo-display" id="comboDisplay"></div>
+    </div>
+
+    <div class="game-info">
+        <div class="info-panel">
+            <h3>Score</h3>
+            <div class="score" id="score">0</div>
         </div>
 
-        <div class="game-info">
-            <div class="info-panel">
-                <h3>Score</h3>
-                <div class="score" id="score">0</div>
-            </div>
-
-            <div class="info-panel">
-                <h3>Level</h3>
-                <div class="level" id="level">1</div>
-            </div>
-
-            <div class="info-panel">
-                <h3>Lines</h3>
-                <div class="lines" id="lines">0</div>
-            </div>
-
-            <div class="info-panel">
-                <h3>Next Piece</h3>
-                <div class="next-piece" id="nextPiece"></div>
-            </div>
-
-            <div class="info-panel">
-                <button class="btn" onclick="togglePause()" id="pauseBtn">Pause</button>
-            </div>
-
-            <div class="info-panel controls">
-                <h3>Controls</h3>
-                <p>← → Move</p>
-                <p>↓ Soft Drop</p>
-                <p>↑ Rotate</p>
-                <p>Space Hard Drop</p>
-            </div>
+        <div class="info-panel">
+            <h3>Level</h3>
+            <div class="level" id="level">1</div>
         </div>
 
-        <div class="right-panel">
-            <div class="info-panel">
-                <h3>Leaderboard</h3>
-                <div class="leaderboard">
-                    <ul class="leaderboard-list" id="leaderboardList">
-                        <!-- Leaderboard items akan diisi oleh JavaScript -->
-                    </ul>
-                </div>
-            </div>
+        <div class="info-panel">
+            <h3>Lines</h3>
+            <div class="lines" id="lines">0</div>
+        </div>
+
+        <div class="info-panel">
+            <h3>Next Piece</h3>
+            <div class="next-piece" id="nextPiece"></div>
+        </div>
+
+        <div class="info-panel">
+            <button class="btn" onclick="togglePause()" id="pauseBtn">Pause</button>
+        </div>
+
+        <div class="info-panel controls">
+            <h3>Controls</h3>
+            <p>← → Move</p>
+            <p>↓ Soft Drop</p>
+            <p>↑ Rotate</p>
+            <p>Space Hard Drop</p>
         </div>
     </div>
 
-    <!-- Modal Notifikasi Server Belum Jalan -->
-    <div id="serverNotRunningModal" class="server-modal">
-        <div class="server-modal-content shake">
-            <h2>Server Tidak Berjalan</h2>
-            <p>Untuk menggunakan fitur leaderboard dan submit score, Anda harus menjalankan server terlebih dahulu.</p>
-            <p><strong>Pastikan:</strong></p>
-            <ul>
-                <li>File <code>server.js</code> tersedia</li>
-                <li>Jalankan dengan perintah: <code>node server.js</code></li>
-            </ul>
-            <button onclick="retryLeaderboardLoad()" class="btn-retry">Coba Lagi</button>
-            <p style="margin-top: 15px; font-size: 14px; color: #ccc;">Popup ini akan hilang otomatis jika server berhasil diakses.</p>
-        </div>
-    </div>
-
-    <!-- Music Info Overlay -->
-    <div class="music-info" id="musicInfo" draggable="true">
-        <div class="now-playing">🎶 Playing Now:</div>
-        <div class="song-title" id="songTitle">Retro Beat Loop</div>
-        <select id="musicPlaylist" onchange="changeBackgroundMusic()" style="margin-top: 5px; padding: 5px;">
-            <option value="music/game-music-loop-2-144037.mp3">Retro Beat Loop</option>
-            <option value="music/retro-8bit-happy-video-music-243998.mp3">Retro Happy</option>
-            <option value="music/bit-beats-1-168243.mp3">Bit Beats</option>
-            <option value="music/game-music-loop-19-153393.mp3">Game Loop 19</option>
-            <option value="music/a-video-game-248444.mp3">Video Game Intro</option>
-            <option value="music/gaming-music-8-bit-console-play-background-intro-theme-278382.mp3">Console Intro</option>
-            <option value="music/game-music-loop-18-153392.mp3">Game Loop 18</option>
-            <option value="music/game-music-loop-20-156390.mp3">Game Loop 20</option>
-            <option value="music/melancholic-dream-217636.mp3">Melancholic Dream</option>
-            <option value="music/christmas-piano-181946.mp3">Christmas Piano</option>
-            <option value="music/christmas-music-180342.mp3">Christmas Jingle</option>
-        </select>
-        <button class="btn-music" onclick="toggleMusicPause()" id="musicPauseBtn">⏸️ Pause Music</button>
-    </div>
-
-    <!-- Game Over Modal -->
-    <div class="game-over" id="gameOver">
-        <div class="game-over-content">
-            <h2>Game Over!</h2>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <p>Lines Cleared: <span id="finalLines">0</span></p>
-            <p>Level Reached: <span id="finalLevel">1</span></p>
-            <input type="text" class="name-input" id="playerName" placeholder="Enter your name" maxlength="15">
-            <div>
-                <button class="btn" onclick="submitScore()" id="submitBtn">Submit Score</button>
-                <button class="btn" onclick="restartGame()">Play Again</button>
+    <div class="right-panel">
+        <div class="info-panel">
+            <h3>Leaderboard</h3>
+            <div class="leaderboard">
+                <ul class="leaderboard-list" id="leaderboardList">
+                    <!-- Isi leaderboard oleh JS -->
+                </ul>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Load JavaScript -->
+<!-- Music Panel -->
+<div class="music-info" id="musicInfo" draggable="true">
+    <div class="now-playing">🎶 Playing Now:</div>
+    <div class="song-title" id="songTitle">Retro Beat Loop</div>
+    <select id="musicPlaylist" class="custom-select" onchange="changeMusic()">
+        <optgroup label="🎵 Background Music">
+            <option value="music/game-music-loop-2-144037.mp3" data-player="bgMusic">Retro Beat Loop</option>
+            <option value="music/retro-8bit-happy-video-music-243998.mp3" data-player="bgMusic">Happy 8-Bit</option>
+            <option value="music/bit-beats-1-168243.mp3" data-player="bgMusic">Bit Beats</option>
+            <option value="music/game-music-loop-19-153393.mp3" data-player="bgMusic">Game Loop 19</option>
+            <option value="music/a-video-game-248444.mp3" data-player="bgMusic">Video Game Intro</option>
+            <option value="music/gaming-music-8-bit-console-play-background-intro-theme-278382.mp3" data-player="bgMusic">Console Intro</option>
+            <option value="music/melancholic-dream-217636.mp3" data-player="bgMusic">Melancholic Dream</option>
+            <option value="music/game-music-loop-18-153392.mp3" data-player="bgMusic">Game Loop 18</option>
+        </optgroup>
+        <optgroup label="🎊 Event Music">
+            <option value="music/event_chinese_new_year.mp3" data-player="eventMusic">Chinese New Year</option>
+            <option value="music/event_easter.mp3" data-player="eventMusic">Easter Event</option>
+            <option value="music/event_halloween.mp3" data-player="eventMusic">Halloween</option>
+            <option value="music/event_valentine.mp3" data-player="eventMusic">Valentine's Day</option>
+            <option value="music/event_new_year.mp3" data-player="eventMusic">New Year</option>
+            <option value="music/event_snow.mp3" data-player="eventMusic">Snow / Christmas</option>
+            <option value="music/event_spring.mp3" data-player="eventMusic">Spring</option>
+            <option value="music/event_summer.mp3" data-player="eventMusic">Summer</option>
+            <option value="music/event_thanksgiving.mp3" data-player="eventMusic">Thanksgiving</option>
+            <option value="music/event_golden_week.mp3" data-player="eventMusic">Golden Week</option>
+            <option value="music/event_mid_autumn.mp3" data-player="eventMusic">Mid-Autumn Festival</option>
+        </optgroup>
+    </select>
+    <button class="btn-music" onclick="toggleMusicPause()" id="musicPauseBtn">⏸️ Pause Music</button>
+</div>
 
-    <script src="script.js"></script>
+<!-- Game Over Modal -->
+<div class="game-over" id="gameOver">
+    <div class="game-over-content">
+        <h2>Game Over!</h2>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <p>Lines Cleared: <span id="finalLines">0</span></p>
+        <p>Level Reached: <span id="finalLevel">1</span></p>
+        <input type="text" class="name-input" id="playerName" placeholder="Enter your name" maxlength="15" />
+        <div>
+            <button class="btn" onclick="submitScore()" id="submitBtn">Submit Score</button>
+            <button class="btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Script -->
+<script src="script.js"></script>
+
 </body>
 </html>
