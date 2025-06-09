@@ -16,6 +16,54 @@ A beautifully crafted web-based Tetris game with modern glassmorphism design and
 
 > "Onii-chan, look how pretty the blocks are when they disappear!"
 
+
+## 🎉 What’s New in v2.1.0 – Seasonal Event Update
+
+Celebrate the seasons with our latest magical update! This version introduces **Seasonal Events** that change the game's **background** and **music** dynamically based on real-world dates. No need to manually activate them — they activate automatically!
+
+> "Onii-chan~ It's snowing in Tetris?!"
+
+### 🗓️ Supported Events & Themes
+
+| Event Name            | Date Range              | Background Image         | Music Track                 |
+|----------------------|--------------------------|---------------------------|-----------------------------|
+| 🎊 New Year          | Jan 1 – Jan 7            | `bg_new_year.jpg`         | `event_new_year.mp3`        |
+| 💘 Valentine’s Day   | Feb 13 – Feb 15          | `bg_valentine.jpg`        | `event_valentine.mp3`       |
+| ✝️ Easter            | Mar 29 – Apr 1           | `bg_easter.jpg`           | `event_easter.mp3`          |
+| 🌸 Spring            | Apr 1 – Apr 30           | `bg_spring.avif`          | `event_spring.mp3`          |
+| 🇯🇵 Golden Week      | Apr 29 – May 5           | `bg_golden_week.jpg`      | `event_golden_week.mp3`     |
+| 🌞 Summer            | Jul 1 – Aug 31           | `bg_summer.jpg`           | `event_summer.mp3`          |
+| 🏮 Mid-Autumn        | Sep 15 – Sep 21          | `bg_mid_autumn.jpg`       | `event_mid_autumn.mp3`      |
+| 🎃 Halloween         | Oct 30 – Oct 31          | `bg_halloween.jpg`        | `event_halloween.mp3`       |
+| 🍁 Thanksgiving      | Nov 23 – Nov 30          | `bg1_thanks_giving.jpg`, `bg2_thanks_giving.jpg` | `event_thanksgiving.mp3` |
+| ❄️ Snow Season       | Dec 1 – Dec 19           | `bg_snow.jpg`             | `event_snow.mp3`            |
+| 🎄 Christmas         | Dec 20 – Dec 26          | `bg_christmas.jpg` (default fallback) | `christmas-music-180342.mp3`, `christmas-piano-181946.mp3` |
+
+> All events are **time-sensitive** and require no player input to activate.
+> Just play during the listed dates and enjoy the automatic seasonal vibes!
+
+### 🔧 How It Works
+
+- Based on your system date, the game checks for the current season.
+- If the date matches a supported event, the background and music are switched.
+- Backgrounds fade in smoothly for an immersive experience.
+- Music loops continuously until the event ends.
+- Returns to default theme after the event period.
+
+### 🪄 Add or Modify Events
+
+You can add your own custom events by modifying the `Event or Themes` array in your config file:
+
+```
+{
+  name: "Your Event",
+  start: "02-13",
+  end: "02-15",
+  background: "img/your_path_to_image_png",
+  music: "music/your_path_to_music.mp3"
+}
+```
+
 ## 🔥 What's New in v2.0.0 - Illya Edition
 
 This major update brings exciting new features that make the gameplay experience even more magical!
