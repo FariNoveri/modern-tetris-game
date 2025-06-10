@@ -605,98 +605,184 @@ select#musicPlaylist {
     backdrop-filter: blur(10px);
 }
 
-.server-modal-content {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: transform 0.2s ease-in-out;
-    position: relative; /* Penting untuk animasi */
+/* AGGRESSIVE FIX - Modal Server di Tengah */
+
+/* Reset semua positioning untuk modal server */
+#serverNotRunningModal,
+.server-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    
+    /* Centering dengan flexbox */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    align-content: center !important;
+    
+    /* Background dan z-index */
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    z-index: 99999 !important;
 }
 
-/* Tambahan: Sembunyikan modal ketika server sudah berjalan */
+/* Content modal */
+#serverNotRunningModal .server-modal-content,
+.server-modal .server-modal-content {
+    position: relative !important;
+    display: block !important;
+    
+    /* Reset positioning */
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 auto !important;
+    
+    /* Sizing */
+    max-width: 500px !important;
+    width: 90% !important;
+    max-height: 80vh !important;
+    
+    /* Styling */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)) !important;
+    padding: 40px !important;
+    border-radius: 20px !important;
+    text-align: center !important;
+    overflow-y: auto !important;
+    box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Shake animation fix */
+#serverNotRunningModal .server-modal-content.shake,
+.server-modal .server-modal-content.shake {
+    animation: serverModalShake 0.6s ease-in-out !important;
+}
+
+/* Content styling */
+#serverNotRunningModal h2,
+.server-modal h2 {
+    margin-bottom: 20px !important;
+    color: #ff6b6b !important;
+    font-size: 28px !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+#serverNotRunningModal p,
+.server-modal p {
+    margin-bottom: 15px !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+}
+
+#serverNotRunningModal ul,
+.server-modal ul {
+    text-align: left !important;
+    margin: 20px 0 !important;
+    color: #e8e8e8 !important;
+    list-style: none !important;
+    padding-left: 0 !important;
+}
+
+#serverNotRunningModal ul li,
+.server-modal ul li {
+    margin: 8px 0 !important;
+    padding-left: 20px !important;
+    position: relative !important;
+}
+
+#serverNotRunningModal ul li:before,
+.server-modal ul li:before {
+    content: "•" !important;
+    color: #00ff88 !important;
+    font-weight: bold !important;
+    position: absolute !important;
+    left: 0 !important;
+}
+
+#serverNotRunningModal code,
+.server-modal code {
+    background: rgba(0, 0, 0, 0.6) !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    font-family: 'Courier New', monospace !important;
+    color: #00ff88 !important;
+    font-size: 14px !important;
+}
+
+#serverNotRunningModal .btn-retry,
+.server-modal .btn-retry {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    border: none !important;
+    padding: 15px 30px !important;
+    border-radius: 25px !important;
+    cursor: pointer !important;
+    margin-top: 25px !important;
+    font-weight: bold !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+#serverNotRunningModal .btn-retry:hover,
+.server-modal .btn-retry:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Hide when has .hidden class */
+#serverNotRunningModal.hidden,
 .server-modal.hidden {
     display: none !important;
 }
 
-.server-modal-content.shake {
-    animation: shake 0.5s ease-in-out;
+/* Keyframe untuk shake */
+@keyframes serverModalShake {
+    0%, 100% { transform: translateX(0) !important; }
+    10% { transform: translateX(-8px) rotate(-1deg) !important; }
+    20% { transform: translateX(8px) rotate(1deg) !important; }
+    30% { transform: translateX(-6px) rotate(-0.5deg) !important; }
+    40% { transform: translateX(6px) rotate(0.5deg) !important; }
+    50% { transform: translateX(-4px) !important; }
+    60% { transform: translateX(4px) !important; }
+    70% { transform: translateX(-2px) !important; }
+    80% { transform: translateX(2px) !important; }
+    90% { transform: translateX(-1px) !important; }
 }
 
-.server-modal-content h2 {
-    margin-bottom: 15px;
-    color: #ff4757;
-    font-size: 24px;
-}
-
-.server-modal-content p {
-    margin-bottom: 10px;
-    color: #ddd;
-    font-size: 15px;
-}
-
-.server-modal-content ul {
-    text-align: left;
-    margin: 10px 0;
-    color: #ccc;
-    list-style: inside;
-}
-
-.btn-retry {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 20px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.btn-retry:hover {
-    background: linear-gradient(135deg, #764ba2, #667eea);
-    transform: scale(1.05);
-}
-
-@keyframes shake {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    1%, 9% { transform: translate(-52%, -50%) rotate(-1deg); }
-    3%, 7% { transform: translate(-48%, -50%) rotate(1deg); }
-    5% { transform: translate(-50%, -50%) rotate(0deg); }
-    11%, 19% { transform: translate(-52%, -50%) rotate(-1deg); }
-    13%, 17% { transform: translate(-48%, -50%) rotate(1deg); }
-    15% { transform: translate(-50%, -50%) rotate(0deg); }
-    21%, 29% { transform: translate(-52%, -50%) rotate(-1deg); }
-    23%, 27% { transform: translate(-48%, -50%) rotate(1deg); }
-    25% { transform: translate(-50%, -50%) rotate(0deg); }
-    31%, 39% { transform: translate(-52%, -50%) rotate(-1deg); }
-    33%, 37% { transform: translate(-48%, -50%) rotate(1deg); }
-    35% { transform: translate(-50%, -50%) rotate(0deg); }
-    41%, 49% { transform: translate(-52%, -50%) rotate(-1deg); }
-    43%, 47% { transform: translate(-48%, -50%) rotate(1deg); }
-    45% { transform: translate(-50%, -50%) rotate(0deg); }
-    51%, 59% { transform: translate(-52%, -50%) rotate(-1deg); }
-    53%, 57% { transform: translate(-48%, -50%) rotate(1deg); }
-    55% { transform: translate(-50%, -50%) rotate(0deg); }
-    61%, 69% { transform: translate(-52%, -50%) rotate(-1deg); }
-    63%, 67% { transform: translate(-48%, -50%) rotate(1deg); }
-    65% { transform: translate(-50%, -50%) rotate(0deg); }
-    71%, 79% { transform: translate(-52%, -50%) rotate(-1deg); }
-    73%, 77% { transform: translate(-48%, -50%) rotate(1deg); }
-    75% { transform: translate(-50%, -50%) rotate(0deg); }
-    81%, 89% { transform: translate(-52%, -50%) rotate(-1deg); }
-    83%, 87% { transform: translate(-48%, -50%) rotate(1deg); }
-    85% { transform: translate(-50%, -50%) rotate(0deg); }
-    91%, 99% { transform: translate(-52%, -50%) rotate(-1deg); }
-    93%, 97% { transform: translate(-48%, -50%) rotate(1deg); }
-    95% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(0deg); }
+/* Mobile responsive */
+@media (max-width: 768px) {
+    #serverNotRunningModal .server-modal-content,
+    .server-modal .server-modal-content {
+        padding: 30px 20px !important;
+        max-width: 95% !important;
+        width: 95% !important;
+    }
+    
+    #serverNotRunningModal h2,
+    .server-modal h2 {
+        font-size: 24px !important;
+    }
+    
+    #serverNotRunningModal p,
+    .server-modal p {
+        font-size: 14px !important;
+    }
 }
 
 .shake {
