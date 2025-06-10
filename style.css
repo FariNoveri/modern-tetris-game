@@ -581,13 +581,21 @@ select#musicPlaylist {
 }
 
 .btn-music:hover {
-    background-color: #666;
+    background-color: #000000;
 }
 
 .btn-music.disabled {
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;
+}
+
+/* Mencegah scroll pada body ketika modal aktif */
+body.modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Perbaikan untuk Server Modal agar berada di tengah */
@@ -603,10 +611,12 @@ select#musicPlaylist {
     align-items: center;
     z-index: 20000;
     backdrop-filter: blur(10px);
+    /* Mencegah scroll dalam modal */
+    overflow: hidden;
 }
 
 .server-modal-content {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
@@ -614,9 +624,9 @@ select#musicPlaylist {
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease-in-out;
     position: relative;
     /* Hapus transform yang mungkin menyebabkan posisi bergeser */
@@ -652,7 +662,7 @@ select#musicPlaylist {
 
 .server-modal-content p {
     margin-bottom: 10px;
-    color: #ddd;
+    color: #000000;
     font-size: 15px;
     line-height: 1.5;
 }
@@ -660,7 +670,7 @@ select#musicPlaylist {
 .server-modal-content ul {
     text-align: left;
     margin: 15px 0;
-    color: #ffffff;
+    color: #000000;
     list-style: inside;
     padding-left: 0;
 }

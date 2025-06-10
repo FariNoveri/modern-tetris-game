@@ -1,9 +1,17 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Encrypted files
+*.enc
+
+# Server files
 encrypt-server.js
-/node_modules
-leaderboard-backup.json.enc
-leaderboard.json.enc
 reset_leaderboard.js
 reset-history.json
 server_original.js
-.env
 generate-hash.js
+leaderboard-backup.json.enc
+leaderboard.json.enc

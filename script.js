@@ -1995,22 +1995,28 @@ function setAndPlayMusic(filePath) {
         });
     }
 }
-    function showServerNotRunningModal() {
+function showServerNotRunningModal() {
         const modal = document.getElementById('serverNotRunningModal');
-        if (modal) modal.style.display = 'flex';
+        if (modal) {
+            modal.style.display = 'flex';
+            // Mencegah scroll pada body
+            document.body.classList.add('modal-open');
+        }
     }
-
 
     function hideServerNotRunningModal() {
         const modal = document.getElementById('serverNotRunningModal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.style.display = 'none';
+            // Mengembalikan scroll pada body
+            document.body.classList.remove('modal-open');
+        }
     }
 
     function showDetectedCheaters() {
         console.log("Detected Cheaters:", Array.from(detectedCheaters));
         return Array.from(detectedCheaters);
     }
-
 
     document.addEventListener('DOMContentLoaded', async () => {
         setAutoBackground();
@@ -2043,6 +2049,28 @@ function setAndPlayMusic(filePath) {
 
     document.getElementById('pauseOverlay').addEventListener('click', function(event) {
         event.stopPropagation();
+    });
+
+    // Event listener untuk menutup modal dengan ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            // Tutup modal jika sedang terbuka
+            const modal = document.getElementById('serverNotRunningModal');
+            if (modal && modal.style.display === 'flex') {
+                hideServerNotRunningModal();
+            }
+        }
+    });
+
+    // Event listener untuk menutup modal dengan klik di luar area modal
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('serverNotRunningModal');
+        if (modal && modal.style.display === 'flex') {
+            // Jika klik di area overlay (bukan di modal content)
+            if (event.target === modal) {
+                hideServerNotRunningModal();
+            }
+        }
     });
 
     document.head.insertAdjacentHTML('beforeend', cheaterStyles);
