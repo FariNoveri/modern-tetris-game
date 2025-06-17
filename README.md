@@ -1,3 +1,6 @@
+
+![logo](https://github.com/user-attachments/assets/41dbda46-961c-41c0-99d5-b2582953bf72)
+
 # 🎮 Modern Tetris Game
 
 > "Minna, let's play together! This time, I'll show you my magical Tetris skills!" - Illyasviel von Einzbern
