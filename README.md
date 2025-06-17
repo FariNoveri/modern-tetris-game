@@ -240,6 +240,13 @@ The game's visual theme can be easily customized by modifying the CSS variables:
 }
 ```
 
+## Screenshot
+![Screenshot 2025-06-17 095824](https://github.com/user-attachments/assets/bd381c88-10ff-4304-9cfd-6a223ed9c53c)
+![Screenshot 2025-06-17 095945](https://github.com/user-attachments/assets/2c767b1b-6c25-4c8e-abaa-745e721dc528)
+![Screenshot 2025-06-17 095646](https://github.com/user-attachments/assets/6b7df12c-8eea-462b-bac7-c05aa623200e)
+![Screenshot 2025-06-17 100343](https://github.com/user-attachments/assets/fc18319e-0d00-4399-b2da-ed993cc3bbc5)
+
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
